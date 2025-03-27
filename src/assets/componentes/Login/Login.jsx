@@ -472,7 +472,7 @@ const Login = () => {
                             onChange={(e) => setUsername(e.target.value)}
                             required
                         />
-
+                        
                         <Input
                             type="password"
                             placeholder="Contraseña"

@@ -432,7 +432,7 @@ function HivenRegister() {
                 setUbicacion({ latitude, longitude });
 
                 const respuestaClima = await fetch(
-                    `http://api.weatherapi.com/v1/current.json?key=ca61bc45a6824e02a51185714251302&q=${latitude},${longitude}&lang=es`
+                    `https://api.weatherapi.com/v1/current.json?key=ca61bc45a6824e02a51185714251302&q=${latitude},${longitude}&lang=es`
                 );
                 
                 if (!respuestaClima.ok) {
