@@ -251,40 +251,63 @@ const RecuperarContraseña = () => {
         setIsLoading(true);
         setError('');
         setMessage('');
-
+    
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
             setError('Por favor, ingrese un correo electrónico válido');
             setIsLoading(false);
             return;
         }
-
+    
         try {
             const response = await fetch('https://colmenaresdeleje.onrender.com/users/password_reset/', {
                 method: 'POST',
                 headers: {
                     "Content-Type": "application/json",
+
                 },
                 body: JSON.stringify({
                     email: email
                 })
             });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                document.cookie = "email=" + data.email + "; path=/";
-
-                setMessage('Se ha enviado un link a tu correo electrónico');
-                setTimeout(() => {
-                    navigate('/')
-                }, 2000);
-            } else {
-                setError(data.message || "Error al enviar el correo");
+    
+            if (!response.ok) {
+                const contentType = response.headers.get("content-type");
+                
+                if (contentType && contentType.includes("application/json")) {
+                    const errorData = await response.json();
+                    setError(errorData.message || "Error al enviar el correo");
+                } else {
+                    const errorText = await response.text();
+                    console.error("Respuesta no JSON:", errorText);
+                    setError("Error inesperado del servidor");
+                }
+                
+                setIsLoading(false);
+                return;
             }
+    
+            // Si la respuesta es exitosa, intenta parsear como JSON
+            const data = await response.json();
+    
+            document.cookie = "email=" + data.email + "; path=/";
+            setMessage('Se ha enviado un link a tu correo electrónico');
+            
+            setTimeout(() => {
+                navigate('/')
+            }, 2000);
+    
         } catch (err) {
-            setError("Error de conexión. Por favor, intente nuevamente.");
-            console.error("Error al enviar el correo", err);
+            console.error("Error detallado:", err);
+            
+            // Distingue diferentes tipos de errores
+            if (err instanceof SyntaxError) {
+                setError("Error al procesar la respuesta del servidor");
+            } else if (err instanceof TypeError) {
+                setError("Error de red. Verifique su conexión");
+            } else {
+                setError("Error desconocido. Por favor, intente nuevamente");
+            }
         } finally {
             setIsLoading(false);
         }
