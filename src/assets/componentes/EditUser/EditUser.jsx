@@ -386,7 +386,7 @@ function EditUser() {
 
         const fetchUserData = async () => {
             try {
-                const response = await fetch(`https://colmenaresdeleje.onrender.com/beekeepers/detail-beekeeper/${apicultorId}/`, {
+                const response = await fetch(`https://colmenaresdeleje.onrender.com/detail-beekeeper/${apicultorId}/`, {
                     headers: {
                         'Authorization': `Bearer ${accessToken}`,
                         'Content-Type': 'application/json',
@@ -497,7 +497,7 @@ function EditUser() {
             birth_date: formDataUser.fechaNacimiento,
             emergency_contact_name: formDataUser.nombreContactoEmergencia,
             emergency_contact_phone: formDataUser.contactoEmergencia,
-            state: formDataUser.estado === 'Active' ? 'Active' : 'Deactivate',
+            state:   'Active' ,
             assignment_date: new Date().toISOString().split('T')[0]
         };
 
@@ -526,10 +526,10 @@ function EditUser() {
         try {
             setStatusUpdating(true);
             const userData = {
-                state: 'Deactivate'
+                state: 'Deactivate'  
             };
-
-            const response = await fetch(`https://colmenaresdeleje.onrender.com/edit-state-beekeeper/${apicultorId}/`, {
+    
+            const response = await fetch(`https://colmenaresdeleje.onrender.com/beekeepers/edit-state-beekeeper/${apicultorId}/`, {
                 method: 'PATCH',
                 headers: {
                     'Authorization': `Bearer ${accessToken}`,
@@ -537,12 +537,17 @@ function EditUser() {
                 },
                 body: JSON.stringify(userData)
             });
-
+    
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.error || 'Error al deshabilitar apicultor');
             }
-
+    
+            setFormDataUser(prev => ({
+                ...prev,
+                estado: 'Deactivate'  
+            }));
+    
             setShowPopup(true);
         } catch (error) {
             alert(`Error: ${error.message}`);
@@ -664,17 +669,7 @@ function EditUser() {
                                 />
                                 {errors.contactoEmergencia && <ErrorMessage>{errors.contactoEmergencia}</ErrorMessage>}
 
-                                <Label htmlFor="estado">Estado</Label>
-                                <Select
-                                    id="estado"
-                                    name="estado"
-                                    value={formDataUser.estado}
-                                    onChange={handleChange}
-                                    required
-                                >
-                                    <option value="Active">Activo</option>
-                                    <option value="Deactivate">Desactivado</option>
-                                </Select>
+                                
 
                                 <ButtonContainer>
                                     <Button type="submit">Actualizar</Button>
