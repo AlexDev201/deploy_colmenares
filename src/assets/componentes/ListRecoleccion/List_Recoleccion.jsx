@@ -9,6 +9,8 @@ import Footer from '../Single_Components/Footer';
 import Aside_Card from '../Single_Components/Aside';
 import imagen2 from 'src/img/imagen_ejemplo.jpg';
 import BackArrowButton from '../Single_Components/BackButton';
+import logo from 'src/img/Colmenares_del_eje_logo.png';
+
 function List_Recoleccion() {
   const navigate = useNavigate();
   const { colmenaId } = useParams(); // Obtenemos el ID de la colmena de la URL
@@ -374,7 +376,7 @@ function List_Recoleccion() {
           >
             <div className="modal-header border-0 pb-0">
               <img 
-                src="src/img/Colmenares_del_eje_logo.png" 
+                src={logo}
                 alt="Logo" 
                 style={{ 
                   height: '35px',

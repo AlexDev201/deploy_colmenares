@@ -3,6 +3,7 @@ import { Container, Card, Button, Modal } from "react-bootstrap";
 import { PersonStandingIcon, X, Eye, LogOut } from "lucide-react";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import profilePic from '/src/img/profile-pic.jpeg';
+import logo from 'src/img/Colmenares_del_eje_logo.png';
 
 function Aside_Card() {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -165,15 +166,15 @@ function Aside_Card() {
         
         {showMobileMenu && (
           <Card
-            className="position-absolute rounded animate__animated animate__fadeIn" // Eliminé "border border-1"
+            className="position-absolute rounded animate__animated animate__fadeIn" 
             style={{
               width: '200px',
               bottom: '70px',
               right: '0',
               zIndex: '1001',
               animation: 'fadeIn 0.3s',
-              boxShadow: '0 0 20px 5px rgba(0, 0, 0, 0.25)', // Sombra igual a ClimaInfo
-              border: '1px solid black' // Borde negro explícito
+              boxShadow: '0 0 20px 5px rgba(0, 0, 0, 0.25)', 
+              border: '1px solid black' 
             }}
           >
             <Card.Body className="d-flex flex-column align-items-center p-3">
@@ -186,7 +187,7 @@ function Aside_Card() {
               </Button>
               <div className="d-flex align-items-center mb-2">
                 <img
-                  src="src/img/profile-pic.jpeg"
+                  src={profilePic}
                   alt="Perfil"
                   className="rounded-circle border border-2"
                   style={{
@@ -242,7 +243,7 @@ function Aside_Card() {
           <div className="modal-content">
             <div className="modal-header border-0 pb-0">
               <img 
-                src="src/img/Colmenares_del_eje_logo.png" 
+                src={logo}
                 alt="Logo" 
                 style={{ height: '35px' }} 
                 className="mx-auto"

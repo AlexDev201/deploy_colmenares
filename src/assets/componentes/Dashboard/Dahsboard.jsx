@@ -6,6 +6,7 @@ import Footer from '../Single_Components/Footer';
 import Aside_Card from '../Single_Components/Aside';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+import logo from 'src/img/Colmenares_del_eje_logo.png';
 
 // Imágenes placeholders
 import imagen1 from 'src/img/abejitas.jpeg';
@@ -494,7 +495,7 @@ function Dashboard() {
           <div className="modal-content" style={modalStyles.modalContent}>
             <div className="modal-header border-0 pb-0">
               <img
-                src="src/img/Colmenares_del_eje_logo.png"
+                src={logo}
                 alt="Logo"
                 style={{
                   height: '35px',

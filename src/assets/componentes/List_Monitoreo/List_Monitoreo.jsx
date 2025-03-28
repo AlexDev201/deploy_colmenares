@@ -9,6 +9,7 @@ import Footer from '../Single_Components/Footer';
 import Aside_Card from '../Single_Components/Aside';
 import imagen1 from 'src/img/abejitas.jpeg';
 import BackArrowButton from '../Single_Components/BackButton';
+import logo from 'src/img/Colmenares_del_eje_logo.png';
 
 function List_Monitoreo() {
   const navigate = useNavigate();
@@ -332,7 +333,7 @@ useEffect(() => {
           >
             <div className="modal-header border-0 pb-0">
               <img 
-                src="src/img/Colmenares_del_eje_logo.png" 
+                src={logo}
                 alt="Logo" 
                 style={{ 
                   height: '35px',
