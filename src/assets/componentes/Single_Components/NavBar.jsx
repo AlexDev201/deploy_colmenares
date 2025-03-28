@@ -1,6 +1,7 @@
 import { styled } from "styled-components";
 import { NavLink, Link } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
+import logo from 'src/img/Colmenares_del_eje_logo.png';
 
 const breakpoints = {
   mobile: '320px',
@@ -302,7 +303,7 @@ function NavBar() {
       <Header ref={headerRef} style={{ transform: loaded ? 'translateY(0)' : 'translateY(-100%)' }}>
         <Logo>
           <Link to="/Dashboard">
-            <img src="/src/img/Colmenares_del_eje_logo.png" alt="Logo Colmenares" />
+            <img src={logo} alt="Logo Colmenares" />
           </Link>
         </Logo>
         
