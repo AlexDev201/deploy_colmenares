@@ -13,6 +13,7 @@ function PublicColmenaView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { id } = useParams();
+  const [ultimoMonitoreo, setUltimoMonitoreo] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -26,6 +27,21 @@ function PublicColmenaView() {
         
         const result = await response.json();
         setData(result);
+        
+        const monitoreoResponse = await fetch('https://colmenaresdeleje.onrender.com/monitoring/list-beehive-monitoring/');
+        
+        if (monitoreoResponse.ok) {
+          const monitoreos = await monitoreoResponse.json();
+          
+          const monitoreosDeLaColmena = monitoreos.filter(m => m.hive_id === parseInt(id));
+          
+          if (monitoreosDeLaColmena.length > 0) {
+            monitoreosDeLaColmena.sort((a, b) => new Date(b.monitoring_date) - new Date(a.monitoring_date));
+            
+            setUltimoMonitoreo(monitoreosDeLaColmena[0]);
+          }
+        }
+        
       } catch (error) {
         setError(error.message);
       } finally {
@@ -36,6 +52,7 @@ function PublicColmenaView() {
     fetchData();
   }, [id]);
 
+  
   return (
     <div className="container my-4">
       <div className="row justify-content-center">
@@ -80,7 +97,7 @@ function PublicColmenaView() {
                     
                     <div className="row mb-4">
                       <div className="col-6">
-                        <p><strong>Código:</strong> {data.id}</p>
+                        <p><strong>Numero de colmena:</strong> {data.id}</p>
                         <p><strong>Ubicación:</strong> {data.location}</p>
                         <p><strong>Presencia de reina:</strong> {data.queen_presence ? 'Sí' : 'No'}</p>
                         <p><strong>Color de reina:</strong> {data.queen_color || 'No especificado'}</p>
@@ -90,6 +107,9 @@ function PublicColmenaView() {
                         <p><strong>Cuadros cría operculada:</strong> {data.capped_brood_frames}</p>
                         <p><strong>Cuadros de comida:</strong> {data.food_frames}</p>
                         <p><strong>Origen:</strong> {data.origin || 'No especificado'}</p>
+                        <p><strong>Último monitoreo:</strong> {ultimoMonitoreo 
+                        ? new Date(ultimoMonitoreo.monitoring_date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })
+                        : 'No hay monitoreos registrados'}</p>
                       </div>
                     </div>
                     
