@@ -386,7 +386,7 @@ function EditUser() {
 
         const fetchUserData = async () => {
             try {
-                const response = await fetch(`https://colmenaresdeleje.onrender.com/detail-beekeeper/${apicultorId}/`, {
+                const response = await fetch(`https://colmenaresdeleje.onrender.com/beekeepers/detail-beekeeper/${apicultorId}/`, {
                     headers: {
                         'Authorization': `Bearer ${accessToken}`,
                         'Content-Type': 'application/json',
