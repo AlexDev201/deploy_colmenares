@@ -276,7 +276,7 @@ function Aside_Card() {
                   <div className="row">
                     <div className="col-12 col-md-5 text-center mb-4 mb-md-0">
                       <img
-                        src="src/img/profile-pic.jpeg"
+                        src={profilePic}
                         alt="Perfil"
                         className="rounded-circle border border-3 border-secondary"
                         style={{
