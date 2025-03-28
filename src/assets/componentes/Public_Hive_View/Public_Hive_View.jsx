@@ -28,7 +28,11 @@ function PublicColmenaView() {
         const result = await response.json();
         setData(result);
         
-        const monitoreoResponse = await fetch('https://colmenaresdeleje.onrender.com/monitoring/list-beehive-monitoring/');
+        const monitoreoResponse =  await fetch('https://colmenaresdeleje.onrender.com/monitoring/list-beehive-monitoring/', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
         
         if (monitoreoResponse.ok) {
           const monitoreos = await monitoreoResponse.json();
