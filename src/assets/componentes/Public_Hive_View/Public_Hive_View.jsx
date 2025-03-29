@@ -34,8 +34,9 @@ function PublicColmenaView() {
         
         if (monitoreoResponse.ok) {
           const monitoreos = await monitoreoResponse.json();
-          
-          const monitoreosDeLaColmena = monitoreos.filter(m => m.hive_id === parseInt(id));
+
+          const apicultorDeLaColmena = monitoreos.filter(m => m.beekeeper === parseInt(id));
+          const monitoreosDeLaColmena = apicultorDeLaColmena.filter(m => m.hive_id === parseInt(id));
           
           if (monitoreosDeLaColmena.length > 0) {
             monitoreosDeLaColmena.sort((a, b) => new Date(b.monitoring_date) - new Date(a.monitoring_date));
@@ -48,8 +49,8 @@ function PublicColmenaView() {
         
         if (recoleccionResponse.ok) {
           const recolecciones = await recoleccionResponse.json();
-          
-          const recoleccionesDeLaColmena = recolecciones.filter(r => r.hive_id === parseInt(id));
+          const beekeeperDeLaColmena = recolecciones.filter(r => r.beekeeper === parseInt(id));
+          const recoleccionesDeLaColmena = beekeeperDeLaColmena.filter(r => r.hive_id === parseInt(id));
           
           if (recoleccionesDeLaColmena.length > 0) {
             recoleccionesDeLaColmena.sort((a, b) => new Date(b.harvest_date) - new Date(a.harvest_date));
