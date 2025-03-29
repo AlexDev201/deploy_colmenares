@@ -30,7 +30,7 @@ function PublicColmenaView() {
         const result = await response.json();
         setData(result);
         
-        const monitoreoResponse = await fetch('https://colmenaresdeleje.onrender.com/monitoring/list-beehive-monitoring/');
+        const monitoreoResponse = await fetch('https://colmenaresdeleje.onrender.com/monitoring/list-public-beehive-monitoring/');
         
         if (monitoreoResponse.ok) {
           const monitoreos = await monitoreoResponse.json();
@@ -44,7 +44,7 @@ function PublicColmenaView() {
           }
         }
         
-        const recoleccionResponse = await fetch('https://colmenaresdeleje.onrender.com/harvesting/list-hive-harvesting/');
+        const recoleccionResponse = await fetch('https://colmenaresdeleje.onrender.com/harvesting/list-public-hive-harvesting/');
         
         if (recoleccionResponse.ok) {
           const recolecciones = await recoleccionResponse.json();
