@@ -343,7 +343,7 @@ function Monitoreo() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         const TodayDate = new Date();
-        const monitoring_date = TodayDate.toISOString();
+        const monitoring_date = TodayDate.toISOString().split('T')[0];
         const token = getCookie('token');
         const validation = validateForm(formData);
 
