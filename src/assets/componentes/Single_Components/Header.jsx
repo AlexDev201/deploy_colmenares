@@ -1,6 +1,6 @@
 import Styled from 'styled-components';
 import logo from 'src/img/Colmenares_del_eje_logo.png';
-
+import { Link } from 'react-router-dom';
 const Cabeza_Pagina = Styled.header`
     display: flex;
     align-items: center;
@@ -88,7 +88,9 @@ const Logo = Styled.img`
 function Header() {
     return (
         <Cabeza_Pagina>
-            <Logo src={logo} alt="Logo" />
+            <Link to="/">
+                <Logo src={logo} alt="Logo" />
+            </Link>
             <Title>Colmenares del Eje</Title>
         </Cabeza_Pagina>
     )
