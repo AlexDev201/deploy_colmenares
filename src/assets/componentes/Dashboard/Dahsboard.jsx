@@ -157,7 +157,7 @@ function Dashboard() {
       if (!colmenaActual) throw new Error('Colmena no encontrada');
       const nuevoEstado = !colmenaActual.status;
 
-      const response = await fetch(`https://colmenaresdeleje.onrender.com/edit-state-hive/${colmenaId}/`, {
+      const response = await fetch(`https://colmenaresdeleje.onrender.com/beehive/edit-state-hive/${colmenaId}/`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
