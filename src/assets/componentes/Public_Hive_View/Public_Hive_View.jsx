@@ -14,6 +14,8 @@ function PublicColmenaView() {
   const [error, setError] = useState(null);
   const { id } = useParams();
   const [ultimoMonitoreo, setUltimoMonitoreo] = useState(null);
+  const [ultimaRecoleccion, setUltimaRecoleccion] = useState(null);
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -28,11 +30,7 @@ function PublicColmenaView() {
         const result = await response.json();
         setData(result);
         
-        const monitoreoResponse =  await fetch('https://colmenaresdeleje.onrender.com/monitoring/list-beehive-monitoring/', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        });
+        const monitoreoResponse = await fetch('https://colmenaresdeleje.onrender.com/monitoring/list-beehive-monitoring/');
         
         if (monitoreoResponse.ok) {
           const monitoreos = await monitoreoResponse.json();
@@ -46,6 +44,20 @@ function PublicColmenaView() {
           }
         }
         
+        const recoleccionResponse = await fetch('https://colmenaresdeleje.onrender.com/harvesting/list-hive-harvesting/');
+        
+        if (recoleccionResponse.ok) {
+          const recolecciones = await recoleccionResponse.json();
+          
+          const recoleccionesDeLaColmena = recolecciones.filter(r => r.hive_id === parseInt(id));
+          
+          if (recoleccionesDeLaColmena.length > 0) {
+            recoleccionesDeLaColmena.sort((a, b) => new Date(b.harvest_date) - new Date(a.harvest_date));
+            
+            setUltimaRecoleccion(recoleccionesDeLaColmena[0]);
+          }
+        }
+        
       } catch (error) {
         setError(error.message);
       } finally {
@@ -55,7 +67,6 @@ function PublicColmenaView() {
     
     fetchData();
   }, [id]);
-
   
   return (
     <div className="container my-4">
@@ -114,6 +125,9 @@ function PublicColmenaView() {
                         <p><strong>Último monitoreo:</strong> {ultimoMonitoreo 
                         ? new Date(ultimoMonitoreo.monitoring_date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })
                         : 'No hay monitoreos registrados'}</p>
+                        <p><strong>Última recolección:</strong> {ultimaRecoleccion 
+                        ? new Date(ultimaRecoleccion.harvest_date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })
+                        : 'No hay recolecciones registradas'}</p>
                       </div>
                     </div>
                     
