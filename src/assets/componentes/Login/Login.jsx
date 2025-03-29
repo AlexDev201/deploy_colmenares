@@ -154,6 +154,76 @@ const ErrorMessage = styled.p`
     }
 `;
 
+// Contenedor para el input de contraseña con el icono del ojo
+const PasswordContainer = styled.div`
+    position: relative;
+    display: flex;
+    width: 100%;
+`;
+
+// Estilo para el botón de mostrar/ocultar contraseña
+const TogglePasswordButton = styled.button`
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    
+    &:focus {
+        outline: none;
+    }
+`;
+
+// Icono del ojo para mostrar la contraseña (con CSS puro)
+const EyeIcon = styled.div`
+    width: 20px;
+    height: 20px;
+    position: relative;
+    
+    &::before {
+        content: '';
+        position: absolute;
+        width: 18px;
+        height: 18px;
+        border: 2px solid ${props => props.isVisible ? '#f79d60' : '#666'};
+        border-radius: 50%;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+    
+    &::after {
+        content: '';
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background-color: ${props => props.isVisible ? '#f79d60' : '#666'};
+        border-radius: 50%;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+    
+    ${props => props.isVisible ? '' : `
+        &:before {
+            height: 2px;
+            width: 22px;
+            transform: translate(-50%, -50%) rotate(45deg);
+            border-radius: 0;
+            border-width: 1px;
+        }
+    `}
+`;
+
 const PopupOverlay = styled.div`
     position: fixed;
     top: 0;
@@ -358,6 +428,8 @@ const Login = () => {
     const [showErrorPopup, setShowErrorPopup] = useState(false);
     const [popupMessage, setPopupMessage] = useState("");
     const [showRedirectMessage, setShowRedirectMessage] = useState(false);
+    // Estado para controlar la visibilidad de la contraseña
+    const [showPassword, setShowPassword] = useState(false);
 
     useEffect(() => {
         const checkIfUsersExist = async () => {
@@ -386,6 +458,12 @@ const Login = () => {
 
         checkIfUsersExist();
     }, [navigate]);
+
+    // Función para alternar la visibilidad de la contraseña
+    const togglePasswordVisibility = (e) => {
+        e.preventDefault(); // Prevenir el envío del formulario
+        setShowPassword(!showPassword);
+    };
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -473,13 +551,22 @@ const Login = () => {
                             required
                         />
                         
-                        <Input
-                            type="password"
-                            placeholder="Contraseña"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                        />
+                        <PasswordContainer>
+                            <Input
+                                type={showPassword ? "text" : "password"}
+                                placeholder="Contraseña"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                            />
+                            <TogglePasswordButton 
+                                type="button"
+                                onClick={togglePasswordVisibility}
+                                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                            >
+                                <EyeIcon isVisible={showPassword} />
+                            </TogglePasswordButton>
+                        </PasswordContainer>
 
                         {error && <ErrorMessage>{error}</ErrorMessage>}
 
