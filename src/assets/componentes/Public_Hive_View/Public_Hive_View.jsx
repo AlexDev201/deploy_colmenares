@@ -19,38 +19,25 @@ function PublicColmenaView() {
       try {
         setLoading(true);
 
-        // Fetch de los detalles de la colmena
         const response = await fetch(`https://colmenaresdeleje.onrender.com/beehive/detail-public-hive/${id}/`);
-        if (!response.ok) {
-          throw new Error('No se encontró información para esta colmena');
-        }
+        if (!response.ok) throw new Error('No se encontró información para esta colmena');
         const result = await response.json();
         setData(result);
 
-        // Fetch de los monitoreos
         const monitoreoResponse = await fetch('https://colmenaresdeleje.onrender.com/monitoring/list-public-beehive-monitoring/');
         if (monitoreoResponse.ok) {
           const monitoreos = await monitoreoResponse.json();
-          console.log("Monitoreos recibidos:", monitoreos); // Depuración
-
           const monitoreosDeLaColmena = monitoreos.filter(m => m.hive_id === parseInt(id));
-          console.log("Monitoreos filtrados para hive_id", id, ":", monitoreosDeLaColmena); // Depuración
-
           if (monitoreosDeLaColmena.length > 0) {
             monitoreosDeLaColmena.sort((a, b) => new Date(b.monitor_date) - new Date(a.monitor_date));
             setUltimoMonitoreo(monitoreosDeLaColmena[0]);
           }
         }
 
-        // Fetch de las recolecciones
         const recoleccionResponse = await fetch('https://colmenaresdeleje.onrender.com/harvesting/list-public-hive-harvesting/');
         if (recoleccionResponse.ok) {
           const recolecciones = await recoleccionResponse.json();
-          console.log("Recolecciones recibidas:", recolecciones); // Depuración
-
           const recoleccionesDeLaColmena = recolecciones.filter(r => r.hive_id === parseInt(id));
-          console.log("Recolecciones filtradas para hive_id", id, ":", recoleccionesDeLaColmena); // Depuración
-
           if (recoleccionesDeLaColmena.length > 0) {
             recoleccionesDeLaColmena.sort((a, b) => new Date(b.harvest_date) - new Date(a.harvest_date));
             setUltimaRecoleccion(recoleccionesDeLaColmena[0]);
@@ -65,6 +52,15 @@ function PublicColmenaView() {
 
     fetchData();
   }, [id]);
+
+  // Función para formatear fechas de manera segura
+  const formatDate = (dateString) => {
+    if (!dateString) return 'No disponible';
+    const date = new Date(dateString);
+    return isNaN(date.getTime())
+      ? 'Fecha inválida'
+      : date.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+  };
 
   return (
     <div className="container my-4">
@@ -92,15 +88,9 @@ function PublicColmenaView() {
                       src={imagenColmena}
                       alt="Imagen de la colmena"
                       className="img-fluid rounded border border-3 border-warning mb-3"
-                      style={{
-                        width: "300px",
-                        height: "300px",
-                        objectFit: "cover",
-                        objectPosition: "center",
-                      }}
+                      style={{ width: "300px", height: "300px", objectFit: "cover", objectPosition: "center" }}
                     />
                   </div>
-
                   <div className="col-md-7">
                     <h4 className="border-bottom border-warning pb-2 mb-3">Datos Generales</h4>
                     <div className="row mb-4">
@@ -115,12 +105,8 @@ function PublicColmenaView() {
                         <p><strong>Cuadros cría operculada:</strong> {data.capped_brood_frames}</p>
                         <p><strong>Cuadros de comida:</strong> {data.food_frames}</p>
                         <p><strong>Origen:</strong> {data.origin || 'No especificado'}</p>
-                        <p><strong>Último monitoreo:</strong> {ultimoMonitoreo
-                          ? new Date(ultimoMonitoreo.monitor_date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })
-                          : 'No hay monitoreos registrados'}</p>
-                        <p><strong>Última recolección:</strong> {ultimaRecoleccion
-                          ? new Date(ultimaRecoleccion.harvest_date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })
-                          : 'No hay recolecciones registradas'}</p>
+                        <p><strong>Último monitoreo:</strong> {formatDate(ultimoMonitoreo?.monitor_date)}</p>
+                        <p><strong>Última recolección:</strong> {formatDate(ultimaRecoleccion?.harvest_date)}</p>
                       </div>
                     </div>
 
@@ -146,7 +132,7 @@ function PublicColmenaView() {
                     )}
 
                     <div className="text-muted text-end mt-3">
-                      <small>Fecha de registro: {new Date(data.registration_date).toLocaleDateString()}</small>
+                      <small>Fecha de registro: {formatDate(data.registration_date)}</small>
                     </div>
                   </div>
                 </div>
