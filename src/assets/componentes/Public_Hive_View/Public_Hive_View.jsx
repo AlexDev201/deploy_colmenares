@@ -37,7 +37,7 @@ function PublicColmenaView() {
           console.log("Monitoreos filtrados para hive_id", id, ":", monitoreosDeLaColmena); // Depuración
 
           if (monitoreosDeLaColmena.length > 0) {
-            monitoreosDeLaColmena.sort((a, b) => new Date(b.monitoring_date) - new Date(a.monitoring_date));
+            monitoreosDeLaColmena.sort((a, b) => new Date(b.monitor_date) - new Date(a.monitor_date));
             setUltimoMonitoreo(monitoreosDeLaColmena[0]);
           }
         }
@@ -116,7 +116,7 @@ function PublicColmenaView() {
                         <p><strong>Cuadros de comida:</strong> {data.food_frames}</p>
                         <p><strong>Origen:</strong> {data.origin || 'No especificado'}</p>
                         <p><strong>Último monitoreo:</strong> {ultimoMonitoreo
-                          ? new Date(ultimoMonitoreo.monitoring_date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })
+                          ? new Date(ultimoMonitoreo.monitor_date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })
                           : 'No hay monitoreos registrados'}</p>
                         <p><strong>Última recolección:</strong> {ultimaRecoleccion
                           ? new Date(ultimaRecoleccion.harvest_date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })

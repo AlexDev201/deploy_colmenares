@@ -343,7 +343,7 @@ function Monitoreo() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         const TodayDate = new Date();
-        const monitoring_date = TodayDate.toISOString().split('T')[0];
+        const monitoring_date = TodayDate.toISOString();
         const token = getCookie('token');
         const validation = validateForm(formData);
 
@@ -359,7 +359,7 @@ function Monitoreo() {
 
         try {
             const apiData = {
-                monitoring_date: monitoring_date,
+                monitor_date: monitoring_date,
                 queen_observations: formData.queen_observations,
                 food_observations: formData.food_observations,
                 general_observations: formData.general_observations,
