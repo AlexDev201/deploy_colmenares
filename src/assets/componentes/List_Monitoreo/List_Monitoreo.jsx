@@ -123,35 +123,40 @@ function List_Monitoreo() {
   }, [showPopup]);
 
   // Petición al backend
-useEffect(() => {
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('https://colmenaresdeleje.onrender.com/monitoring/list-beehive-monitoring/', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Error en la respuesta del servidor: ${response.status}`);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('https://colmenaresdeleje.onrender.com/monitoring/list-beehive-monitoring/', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Error en la respuesta del servidor: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        // Filtrar solo los monitoreos de colmenas activas
+        const monitoreosActivos = result.filter(monitoreo => 
+          monitoreo.hive && monitoreo.hive.status === 'active'
+        );
+        
+        setMonitoreos(monitoreosActivos);
+        setError(null);
+      } catch (error) {
+        console.error("Error al cargar los monitoreos:", error);
+        setError("No se pudieron cargar los datos de monitoreo. Por favor, intenta nuevamente más tarde.");
+      } finally {
+        setLoading(false);
       }
-      
-      const result = await response.json();
-      
-     
-      setMonitoreos(result);
-      setError(null);
-    } catch (error) {
-      console.error("Error al cargar los monitoreos:", error);
-      setError("No se pudieron cargar los datos de monitoreo. Por favor, intenta nuevamente más tarde.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  fetchData();
-}, []);
+    fetchData();
+  }, []);
+  
   const handleSelectChange = (e, monitoreoId) => {
     setSelectValues({
       ...selectValues,
@@ -225,7 +230,7 @@ useEffect(() => {
           <Col xs={12} lg={8} xl={7} className="mb-4 mx-auto">
             {/* Título y botón de ordenación */}
             <div className="d-flex justify-content-between align-items-center mb-3">
-              <h4 className="mb-0">Monitoreos</h4>
+              <h4 className="mb-0">Monitoreos de Colmenas Activas</h4>
               {!loading && monitoreos.length > 0 && (
                 <Button 
                   variant="outline-warning" 
@@ -255,7 +260,7 @@ useEffect(() => {
               ) : monitoreos.length === 0 ? (
                 <Card className="shadow-sm p-3">
                   <Card.Body className="text-center">
-                    <p>No hay monitoreos disponibles</p>
+                    <p>No hay monitoreos de colmenas activas disponibles</p>
                   </Card.Body>
                 </Card>
               ) : (
@@ -288,6 +293,7 @@ useEffect(() => {
                       <Col xs={12} sm={5} className="text-center text-sm-start mb-3 mb-sm-0">
                         <h3 className="mb-1 ms-0 ms-sm-3">Fecha: {formatDate(monitoreo.monitoring_date)}</h3>
                         <p className="mb-0 ms-0 ms-sm-3">Numero de colmena: {monitoreo.hive_id}</p>
+                        <Badge bg="success" className="ms-0 ms-sm-3 mt-2">Colmena Activa</Badge>
                       </Col>
                       <Col xs={12} sm={3} className="text-center">
                         <Form.Select 
@@ -394,6 +400,7 @@ useEffect(() => {
                               { label: "Observaciones Alimento", value: selectedMonitoreo.food_observations || 'Sin observaciones' },
                               { label: "Observaciones Generales", value: selectedMonitoreo.general_observations || 'Sin observaciones' },
                               { label: "Colmena", value: selectedMonitoreo.hive_id },
+                              { label: "Estado de Colmena", value: "Activa" },
                               { label: "Apicultor", value: `${selectedMonitoreo.beekeeper.first_name} ${selectedMonitoreo.beekeeper.last_name}` }
                             ].map((item, index) => (
                               <p 
