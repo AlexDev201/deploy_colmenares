@@ -497,7 +497,7 @@ function EditUser() {
             birth_date: formDataUser.fechaNacimiento,
             emergency_contact_name: formDataUser.nombreContactoEmergencia,
             emergency_contact_phone: formDataUser.contactoEmergencia,
-            state:   'Active' ,
+            state:   formDataUser.estado, 
             assignment_date: new Date().toISOString().split('T')[0]
         };
 
