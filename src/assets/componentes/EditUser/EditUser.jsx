@@ -408,7 +408,7 @@ function EditUser() {
                     fechaNacimiento: data.birth_date || '',
                     nombreContactoEmergencia: data.emergency_contact_name || '',
                     contactoEmergencia: data.emergency_contact_phone || '',
-                    estado: data.state === 'Activo' ? 'Active' : 'Deactivate',
+                    estado: data.state === 'Active' ? 'Active' : 'Deactivate',
                 });
             } catch (error) {
                 alert(`Error: ${error.message}`);
