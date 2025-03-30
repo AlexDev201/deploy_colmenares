@@ -126,7 +126,7 @@ function List_Recoleccion() {
         const response = await fetch('https://colmenaresdeleje.onrender.com/harvesting/list-hive-harvesting/', {
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': token ? `Bearer ${token}` : '',
+            'Authorization': `Bearer ${token}`
           }
         });
         if (!response.ok) {
