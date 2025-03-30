@@ -359,7 +359,7 @@ function Monitoreo() {
 
         try {
             const apiData = {
-                monitor_date: monitoring_date,
+                monitoring_date: monitoring_date,
                 queen_observations: formData.queen_observations,
                 food_observations: formData.food_observations,
                 general_observations: formData.general_observations,

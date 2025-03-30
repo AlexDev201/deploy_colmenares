@@ -341,7 +341,6 @@ const RecuperarContraseña = () => {
                         >
                             {isLoading ? 'Enviando...' : 'Enviar correo'}
                         </Button>
-                        <StyledLink to="/ConfirmCell">¿Olvidaste tu correo?</StyledLink>
                     </Form>
                 </Container>
             </Main>
