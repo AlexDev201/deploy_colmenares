@@ -657,11 +657,11 @@ function EditColmena() {
                                         type="button" 
                                         onClick={handleChangeHiveState}
                                         style={{ 
-                                            backgroundColor: colmenaStatus ? '#dc3545' : '#28a745',
+                                            backgroundColor: '#dc3545' 
                                         }}
                                         disabled={statusUpdating}
                                     >
-                                        {statusUpdating ? 'Procesando...' : (colmenaStatus ? 'Deshabilitar' : 'Habilitar')}
+                                        {statusUpdating ? 'Procesando...' : ( 'Deshabilitar' )}
                                     </Button>
                                     <Regress_Button style={{ width: '100%' }} /> 
                                 </ButtonContainer>
