@@ -35,6 +35,7 @@ function List_Monitoreo() {
   }
   const role = getCookie('role');
   const token = getCookie('token');
+
   // Función para ordenar los monitoreos por fecha
   const ordenarPorFecha = () => {
     const monitoreosOrdenados = [...monitoreos].sort((a, b) => {
@@ -112,7 +113,6 @@ function List_Monitoreo() {
   useEffect(() => {
     if (showPopup) {
       setModalAnimation('animate-modal-in');
-      // Mostrar los detalles con un pequeño retraso para crear efecto secuencial
       setTimeout(() => {
         setDetailsVisible(true);
       }, 300);
@@ -191,8 +191,8 @@ function List_Monitoreo() {
 
   const handleEditMonitoreo = (monitoreoId) => {
     const selectedMonitoreo = getSelectedMonitoreo();
-    navigate(`/Edit_Monitoreo/${monitoreoId}`,{
-      state:{
+    navigate(`/Edit_Monitoreo/${monitoreoId}`, {
+      state: {
         hive_id: selectedMonitoreo.hive_id,
         monitoring_date: selectedMonitoreo.monitoring_date,
         queen_observations: selectedMonitoreo.queen_observations,
@@ -292,7 +292,7 @@ function List_Monitoreo() {
                       </Col>
                       <Col xs={12} sm={5} className="text-center text-sm-start mb-3 mb-sm-0">
                         <h3 className="mb-1 ms-0 ms-sm-3">Fecha: {formatDate(monitoreo.monitoring_date)}</h3>
-                        <p className="mb-0 ms-0 ms-sm-3">Numero de colmena: {monitoreo.hive_id}</p>
+                        <p className="mb-0 ms-0 ms-sm-3">Numero de colmena: {monitoreo.hive_id.id}</p>
                         <Badge bg="success" className="ms-0 ms-sm-3 mt-2">Colmena Activa</Badge>
                       </Col>
                       <Col xs={12} sm={3} className="text-center">
@@ -399,7 +399,7 @@ function List_Monitoreo() {
                               { label: "Observaciones Reina", value: selectedMonitoreo.queen_observations || 'Sin observaciones' },
                               { label: "Observaciones Alimento", value: selectedMonitoreo.food_observations || 'Sin observaciones' },
                               { label: "Observaciones Generales", value: selectedMonitoreo.general_observations || 'Sin observaciones' },
-                              { label: "Colmena", value: selectedMonitoreo.hive_id },
+                              { label: "Colmena", value: selectedMonitoreo.hive_id.id },
                               { label: "Estado de Colmena", value: "Activa" },
                               { label: "Apicultor", value: `${selectedMonitoreo.beekeeper.first_name} ${selectedMonitoreo.beekeeper.last_name}` }
                             ].map((item, index) => (
