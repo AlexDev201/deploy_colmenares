@@ -20,12 +20,12 @@ function Dashboard() {
   const [selectedColmenaId, setSelectedColmenaId] = useState(null);
   const [showPopup, setShowPopup] = useState(false);
   const [statusUpdating, setStatusUpdating] = useState(false);
-  const [showQR, setShowQR] = useState(false);
-  const [qrData, setQrData] = useState(null);
-  const [selectValues, setSelectValues] = useState({});
   const [modalAnimation, setModalAnimation] = useState('');
   const [detailsVisible, setDetailsVisible] = useState(false);
-  const [showInactive, setShowInactive] = useState(false); // Nuevo estado para mostrar inactivas
+  const [showFullHistory, setShowFullHistory] = useState(false);
+  const [collections, setCollections] = useState({});
+  const [monitorings, setMonitorings] = useState({});
+  const [expandedColmena, setExpandedColmena] = useState(null);
 
   function getCookie(name) {
     const nameEQ = name + "=";
@@ -42,49 +42,65 @@ function Dashboard() {
   const token = getCookie('token');
   const imagenes = [imagen1, imagen2, imagen3];
 
-  if (role === 'beekeeper') {
-    useEffect(() => {
-      const fetchData = async () => {
-        try {
-          const response = await fetch('https://colmenaresdeleje.onrender.com/beehive/list-hives/', {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-            },
-          });
-          if (!response.ok) {
-            throw new Error('Error en la respuesta del servidor');
-          }
-          const result = await response.json();
-          setData(result); // Guardamos todos los datos sin filtrar
-        } catch (error) {
-          setError(error.message);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const endpoint = role === 'admin'
+          ? 'https://colmenaresdeleje.onrender.com/beehive/list-hives-admin/'
+          : 'https://colmenaresdeleje.onrender.com/beehive/list-hives/';
+        const response = await fetch(endpoint, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        if (!response.ok) {
+          throw new Error('Error en la respuesta del servidor');
         }
-      };
-      fetchData();
-    }, []);
-  }
+        const result = await response.json();
+        setData(result);
+      } catch (error) {
+        setError(error.message);
+      }
+    };
+    fetchData();
+  }, [role, token]);
 
-  if (role === 'admin') {
-    useEffect(() => {
-      const fetchData = async () => {
-        try {
-          const response = await fetch('https://colmenaresdeleje.onrender.com/beehive/list-hives-admin/', {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-            },
-          });
-          if (!response.ok) {
-            throw new Error('Error en la respuesta del servidor');
+  useEffect(() => {
+    if (showFullHistory && data) {
+      const fetchHistory = async () => {
+        const newCollections = {};
+        const newMonitorings = {};
+        for (const colmena of data) {
+          try {
+            const collectionsResponse = await fetch(
+              `https://colmenaresdeleje.onrender.com/beehive/list-collections/${colmena.id}/`,
+              {
+                headers: { 'Authorization': `Bearer ${token}` },
+              }
+            );
+            if (collectionsResponse.ok) {
+              newCollections[colmena.id] = await collectionsResponse.json();
+            }
+
+            const monitoringsResponse = await fetch(
+              `https://colmenaresdeleje.onrender.com/beehive/list-monitorings/${colmena.id}/`,
+              {
+                headers: { 'Authorization': `Bearer ${token}` },
+              }
+            );
+            if (monitoringsResponse.ok) {
+              newMonitorings[colmena.id] = await monitoringsResponse.json();
+            }
+          } catch (err) {
+            console.error(`Error fetching history for colmena ${colmena.id}:`, err);
           }
-          const result = await response.json();
-          setData(result); // Guardamos todos los datos sin filtrar
-        } catch (error) {
-          setError(error.message);
         }
+        setCollections(newCollections);
+        setMonitorings(newMonitorings);
       };
-      fetchData();
-    }, []);
-  }
+      fetchHistory();
+    }
+  }, [showFullHistory, data, token]);
 
   useEffect(() => {
     if (showPopup) {
@@ -98,49 +114,8 @@ function Dashboard() {
     }
   }, [showPopup]);
 
-  const handleSelectChange = (e, colmenaId) => {
-    setSelectValues({
-      ...selectValues,
-      [colmenaId]: e.target.value,
-    });
-    switch (e.target.value) {
-      case 'editar':
-        navigate(`/EditColmena/${colmenaId}`);
-        break;
-      case 'monitoreo':
-        navigate(`/Monitoreo/${colmenaId}`);
-        break;
-      case 'recoleccion':
-        navigate(`/Recoleccion/${colmenaId}`);
-        break;
-      case 'lista_monitoreo':
-        navigate('/List_Monitoreo');
-        break;
-      case 'lista_recoleccion':
-        navigate('/List_Recoleccion');
-        break;
-      case 'visualizar-detalles':
-        setSelectedColmenaId(null);
-        setTimeout(() => {
-          setSelectedColmenaId(colmenaId);
-          setShowPopup(true);
-        }, 10);
-        break;
-      default:
-        break;
-    }
-  };
-
   const closePopup = () => {
-    if (selectedColmenaId) {
-      setSelectValues({
-        ...selectValues,
-        [selectedColmenaId]: '',
-      });
-    }
     setShowPopup(false);
-    setShowQR(false);
-    setQrData(null);
     setTimeout(() => {
       setSelectedColmenaId(null);
     }, 400);
@@ -154,7 +129,7 @@ function Dashboard() {
       const accessToken = token;
       const colmenaActual = data.find(c => c.id === colmenaId);
       if (!colmenaActual) throw new Error('Colmena no encontrada');
-      const nuevoEstado = !colmenaActual.status;
+      const nuevoEstado = colmenaActual.status === 'Active' ? 'Deactivate' : 'Active';
 
       const response = await fetch(`https://colmenaresdeleje.onrender.com/beehive/edit-state-hive/${colmenaId}/`, {
         method: 'PATCH',
@@ -163,7 +138,7 @@ function Dashboard() {
           'Authorization': `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
-          status: nuevoEstado ? 'Active' : 'Deactivate',
+          status: nuevoEstado,
         }),
       });
 
@@ -172,69 +147,17 @@ function Dashboard() {
         throw new Error(errorData.error || 'Error al actualizar el estado');
       }
 
-      const result = await response.json();
+      setData(prevData =>
+        prevData.map(colmena =>
+          colmena.id === colmenaId ? { ...colmena, status: nuevoEstado } : colmena
+        )
+      );
 
-      if (!nuevoEstado) {
-        setData(prevData => prevData.filter(colmena => colmena.id !== colmenaId));
-        if (showPopup && selectedColmenaId === colmenaId) {
-          closePopup();
-        }
-      } else {
-        setData(prevData =>
-          prevData.map(colmena =>
-            colmena.id === colmenaId ? { ...colmena, status: nuevoEstado } : colmena
-          )
-        );
-      }
-
-      alert(`Colmena ${nuevoEstado ? 'habilitada' : 'deshabilitada'} con éxito`);
+      alert(`Colmena ${nuevoEstado === 'Active' ? 'habilitada' : 'deshabilitada'} con éxito`);
     } catch (error) {
       alert(`Error: ${error.message}`);
     } finally {
       setStatusUpdating(false);
-    }
-  };
-
-  const handleQRAction = async (colmenaId, action = 'download') => {
-    try {
-      const accessToken = token;
-      const endpoint = role === 'admin'
-        ? 'https://colmenaresdeleje.onrender.com/beehive/list-hives-admin/'
-        : 'https://colmenaresdeleje.onrender.com/beehive/list-hives/';
-
-      const response = await fetch(endpoint, {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Error al obtener los detalles de la colmena');
-      }
-
-      const hives = await response.json();
-      const selectedHive = hives.find(hive => hive.id === colmenaId);
-
-      if (!selectedHive || !selectedHive.qr_code) {
-        throw new Error('No se encontró el código QR para esta colmena');
-      }
-
-      const qrBase64 = selectedHive.qr_code;
-
-      if (action === 'view') {
-        setQrData(qrBase64);
-        setShowQR(!showQR);
-      } else if (action === 'download') {
-        const link = document.createElement('a');
-        link.href = `data:image/png;base64,${qrBase64}`;
-        link.download = `qr_hive_${colmenaId}.png`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        alert('Código QR descargado exitosamente');
-      }
-    } catch (error) {
-      alert(`Error al procesar el QR: ${error.message}`);
     }
   };
 
@@ -246,12 +169,6 @@ function Dashboard() {
       transform: detailsVisible ? 'translateY(0)' : 'translateY(20px)',
       transition: 'opacity 0.5s ease-out, transform 0.5s ease-out',
     },
-    qrAnimation: { 
-      opacity: showQR ? 1 : 0,
-      maxHeight: showQR ? '300px' : '0px',
-      transition: 'opacity 0.4s ease, max-height 0.4s ease',
-      overflow: 'hidden',
-    },
     statusBadge: { transition: 'background-color 0.3s ease' },
     modalContent: {
       transform: showPopup ? 'scale(1)' : 'scale(0.8)',
@@ -262,11 +179,7 @@ function Dashboard() {
       transform: 'translateZ(0)',
       cursor: 'pointer',
       border: '1px solid black',
-      boxShadow: '0 15px 30px rgba(0,0,0,0.25)', 
-    },
-    hiveCardHover: {
-      boxShadow: '0 10px 20px rgba(0,0,0,0.1)',
-      transform: 'translateY(-5px)',
+      boxShadow: '0 15px 30px rgba(0,0,0,0.25)',
     },
   };
 
@@ -315,22 +228,15 @@ function Dashboard() {
         max-height: 150px;
         margin: 0 auto;
       }
-      .bee-card .col-sm-5,
-      .bee-card .col-sm-3 {
+      .bee-card .col-sm-5 {
         text-align: center;
         margin-top: 10px;
-      }
-      .form-select {
-        width: 100%;
-        margin: 0 auto;
       }
     }
   `;
   document.head.appendChild(styleElement);
 
-  const filteredData = data ? data.filter(colmena => 
-    showInactive ? colmena.status === 'Deactivate' : colmena.status === 'Active'
-  ) : [];
+  const filteredData = showFullHistory ? data : (data ? data.filter(colmena => colmena.status === 'Active') : []);
 
   return (
     <div className="d-flex flex-column min-vh-100">
@@ -340,10 +246,10 @@ function Dashboard() {
         {role === 'admin' && (
           <div className="text-center mb-3">
             <button
-              className={`btn ${showInactive ? 'btn-success' : 'btn-warning'} honey-button`}
-              onClick={() => setShowInactive(!showInactive)}
+              className={`btn ${showFullHistory ? 'btn-success' : 'btn-warning'} honey-button`}
+              onClick={() => setShowFullHistory(!showFullHistory)}
             >
-              {showInactive ? 'Mostrar Colmenas Activas' : 'Mostrar Colmenas Desactivadas'}
+              {showFullHistory ? 'Mostrar Solo Activas' : 'Ver Historial Completo'}
             </button>
           </div>
         )}
@@ -355,7 +261,7 @@ function Dashboard() {
               ) : !data ? (
                 <p className="text-center">Cargando colmenas...</p>
               ) : filteredData.length === 0 ? (
-                <p className="text-center">No hay colmenas {showInactive ? 'desactivadas' : 'activas'} registradas.</p>
+                <p className="text-center">No hay colmenas registradas.</p>
               ) : (
                 filteredData.map((colmena, index) => (
                   <div
@@ -365,94 +271,24 @@ function Dashboard() {
                   >
                     <div className="row g-0 align-items-center">
                       <div className="col-12 col-sm-4 mb-3 mb-sm-0">
-                        <div
-                          id={`image-flip-${colmena.id}`}
+                        <img
+                          src={imagenes[index % imagenes.length]}
+                          alt="Imagen de la colmena"
+                          className="img-fluid rounded"
                           style={{
-                            transition: 'transform 0.6s',
-                            transformStyle: 'preserve-3d',
-                            position: 'relative',
                             width: '100%',
                             height: '150px',
+                            objectFit: 'cover',
+                            transition: 'transform 0.3s ease',
                           }}
-                        >
-                          <button
-                            className="btn btn-sm btn-warning position-absolute"
-                            style={{
-                              top: '5px',
-                              left: '5px',
-                              zIndex: 10,
-                              padding: '3px 8px',
-                              fontSize: '0.8rem',
-                              opacity: 0.9,
-                            }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              const imageContainer = document.getElementById(`image-flip-${colmena.id}`);
-                              if (imageContainer) {
-                                imageContainer.style.transform =
-                                  imageContainer.style.transform === 'rotateY(180deg)' ? 'rotateY(0deg)' : 'rotateY(180deg)';
-                              }
-                            }}
-                          >
-                            <i className="bi bi-arrow-repeat"></i>
-                          </button>
-
-                          <div
-                            style={{
-                              backfaceVisibility: 'hidden',
-                              position: 'absolute',
-                              width: '100%',
-                              height: '100%',
-                            }}
-                          >
-                            <img
-                              src={imagenes[index % imagenes.length]}
-                              alt="Imagen de la colmena"
-                              className="img-fluid rounded"
-                              style={{
-                                width: '100%',
-                                height: '100%',
-                                objectFit: 'cover',
-                                transition: 'transform 0.3s ease',
-                              }}
-                              onMouseOver={(e) => (e.target.style.transform = 'scale(1.05)')}
-                              onMouseOut={(e) => (e.target.style.transform = 'scale(1)')}
-                            />
-                          </div>
-
-                          <div
-                            style={{
-                              backfaceVisibility: 'hidden',
-                              position: 'absolute',
-                              width: '100%',
-                              height: '100%',
-                              transform: 'rotateY(180deg)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              backgroundColor: '#fff',
-                            }}
-                          >
-                            {colmena.qr_code ? (
-                              <img
-                                src={`data:image/png;base64,${colmena.qr_code}`}
-                                alt={`QR Code for hive ${colmena.id}`}
-                                style={{
-                                  maxWidth: '100%',
-                                  maxHeight: '100%',
-                                  objectFit: 'contain',
-                                }}
-                              />
-                            ) : (
-                              <p style={{ textAlign: 'center' }}>No QR disponible</p>
-                            )}
-                          </div>
-                        </div>
+                          onMouseOver={(e) => (e.target.style.transform = 'scale(1.05)')}
+                          onMouseOut={(e) => (e.target.style.transform = 'scale(1)')}
+                        />
                       </div>
 
-                      <div className="col-12 col-sm-5 text-center text-sm-start mb-3 mb-sm-0">
+                      <div className="col-12 col-sm-8 text-center text-sm-start">
                         <h3 className="mb-1 ms-0 ms-sm-3">Numero de colmena: {colmena.id}</h3>
-                        <p className="mb-0 ms-0 ms-sm-3">Ubicacion: {colmena.location}</p>
+                        <p className="mb-0 ms-0 ms-sm-3">Ubicación: {colmena.location}</p>
                         <p className="mb-0 ms-0 ms-sm-3">
                           <span
                             className={`badge ${colmena.status === 'Active' ? 'bg-success' : 'bg-danger'}`}
@@ -461,21 +297,51 @@ function Dashboard() {
                             {colmena.status === 'Active' ? 'Activa' : 'Inactiva'}
                           </span>
                         </p>
-                      </div>
-                      <div className="col-12 col-sm-3 text-center">
-                        <select
-                          className="form-select form-select-sm bg-warning-subtle border-warning-subtle"
-                          onChange={(e) => handleSelectChange(e, colmena.id)}
-                          value={selectValues[colmena.id] || ''}
-                        >
-                          <option value="">Seleccionar</option>
-                          <option value="editar">Editar</option>
-                          <option value="recoleccion">Recolección</option>
-                          <option value="monitoreo">Monitoreo</option>
-                          <option value="visualizar-detalles">Visualizar Detalles</option>
-                          <option value="lista_monitoreo">Lista de monitoreos</option>
-                          <option value="lista_recoleccion">Lista de recolecciones</option>
-                        </select>
+                        <p className="mb-0 ms-0 ms-sm-3">Apicultor: {colmena.beekeeper_id.first_name} {colmena.beekeeper_id.last_name}</p>
+                        <p className="mb-0 ms-0 ms-sm-3">Cuadros de cría abierta: {colmena.open_brood_frames}</p>
+                        <p className="mb-0 ms-0 ms-sm-3">Cuadros de cría operculada: {colmena.capped_brood_frames}</p>
+                        <p className="mb-0 ms-0 ms-sm-3">Cuadros de comida: {colmena.food_frames}</p>
+                        <p className="mb-0 ms-0 ms-sm-3">Presencia de reina: {colmena.queen_presence ? 'Sí' : 'No'}</p>
+
+                        {showFullHistory && (
+                          <>
+                            <button
+                              className="btn btn-link mt-2 ms-0 ms-sm-3"
+                              onClick={() => setExpandedColmena(expandedColmena === colmena.id ? null : colmena.id)}
+                            >
+                              {expandedColmena === colmena.id ? 'Ocultar Historial' : 'Ver Historial'}
+                            </button>
+                            {expandedColmena === colmena.id && (
+                              <div className="mt-2 ms-0 ms-sm-3">
+                                <h5>Recolecciones</h5>
+                                {collections[colmena.id]?.length > 0 ? (
+                                  <ul>
+                                    {collections[colmena.id].map((collection, idx) => (
+                                      <li key={idx}>
+                                        Fecha: {new Date(collection.date).toLocaleDateString()} - Cantidad: {collection.amount}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                ) : (
+                                  <p>No hay recolecciones registradas.</p>
+                                )}
+
+                                <h5>Monitoreos</h5>
+                                {monitorings[colmena.id]?.length > 0 ? (
+                                  <ul>
+                                    {monitorings[colmena.id].map((monitoring, idx) => (
+                                      <li key={idx}>
+                                        Fecha: {new Date(monitoring.date).toLocaleDateString()} - Observaciones: {monitoring.observations}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                ) : (
+                                  <p>No hay monitoreos registrados.</p>
+                                )}
+                              </div>
+                            )}
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -569,34 +435,12 @@ function Dashboard() {
                                 Editar
                               </button>
                               <button
-                                className="btn btn-warning honey-button"
-                                onClick={() => handleQRAction(selectedColmena.id, 'download')}
-                                style={{
-                                  animation: 'fadeIn 0.5s ease-out forwards',
-                                  animationDelay: '0.2s',
-                                  opacity: 0,
-                                }}
-                              >
-                                Descargar QR
-                              </button>
-                              <button
-                                className="btn btn-warning honey-button"
-                                onClick={() => handleQRAction(selectedColmena.id, 'view')}
-                                style={{
-                                  animation: 'fadeIn 0.5s ease-out forwards',
-                                  animationDelay: '0.3s',
-                                  opacity: 0,
-                                }}
-                              >
-                                {showQR ? 'Ocultar QR' : 'Ver QR'}
-                              </button>
-                              <button
                                 className={`btn honey-button ${selectedColmena.status === 'Active' ? 'btn-danger' : 'btn-success'}`}
                                 onClick={() => handleChangeHiveState(selectedColmena.id)}
                                 disabled={statusUpdating}
                                 style={{
                                   animation: 'fadeIn 0.5s ease-out forwards',
-                                  animationDelay: '0.4s',
+                                  animationDelay: '0.2s',
                                   opacity: 0,
                                 }}
                               >
@@ -612,22 +456,6 @@ function Dashboard() {
                             </div>
                           </div>
                           <div className="col-12 col-md-7">
-                            <div style={modalStyles.qrAnimation}>
-                              {qrData && (
-                                <div className="mb-3 text-center">
-                                  <h6>Código QR:</h6>
-                                  <img
-                                    src={`data:image/png;base64,${qrData}`}
-                                    alt="Código QR de la colmena"
-                                    style={{
-                                      maxWidth: '200px',
-                                      maxHeight: '200px',
-                                    }}
-                                  />
-                                </div>
-                              )}
-                            </div>
-
                             {[
                               { label: "Estado", value: <span className={`badge ${selectedColmena.status === 'Active' ? 'bg-success' : 'bg-danger'}`}>{selectedColmena.status === 'Active' ? 'Activa' : 'Inactiva'}</span> },
                               { label: "Apicultor asignado", value: `${selectedColmena.beekeeper_id.first_name} ${selectedColmena.beekeeper_id.last_name}` },
