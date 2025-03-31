@@ -25,6 +25,7 @@ function Dashboard() {
   const [selectValues, setSelectValues] = useState({});
   const [modalAnimation, setModalAnimation] = useState('');
   const [detailsVisible, setDetailsVisible] = useState(false);
+  const [showInactive, setShowInactive] = useState(false); // Nuevo estado para mostrar inactivas
 
   function getCookie(name) {
     const nameEQ = name + "=";
@@ -54,8 +55,7 @@ function Dashboard() {
             throw new Error('Error en la respuesta del servidor');
           }
           const result = await response.json();
-          const activeBees = result.filter(colmena => colmena.status === 'Active');
-          setData(activeBees);
+          setData(result); // Guardamos todos los datos sin filtrar
         } catch (error) {
           setError(error.message);
         }
@@ -77,8 +77,7 @@ function Dashboard() {
             throw new Error('Error en la respuesta del servidor');
           }
           const result = await response.json();
-          const activeBees = result.filter(colmena => colmena.status === 'Active');
-          setData(activeBees);
+          setData(result); // Guardamos todos los datos sin filtrar
         } catch (error) {
           setError(error.message);
         }
@@ -329,11 +328,25 @@ function Dashboard() {
   `;
   document.head.appendChild(styleElement);
 
+  const filteredData = data ? data.filter(colmena => 
+    showInactive ? colmena.status === 'Deactivate' : colmena.status === 'Active'
+  ) : [];
+
   return (
     <div className="d-flex flex-column min-vh-100">
       {role === 'admin' ? <Admin_Nav_Bar /> : <NavBar />}
 
       <div className="container-fluid flex-grow-1 py-3">
+        {role === 'admin' && (
+          <div className="text-center mb-3">
+            <button
+              className={`btn ${showInactive ? 'btn-success' : 'btn-warning'} honey-button`}
+              onClick={() => setShowInactive(!showInactive)}
+            >
+              {showInactive ? 'Mostrar Colmenas Activas' : 'Mostrar Colmenas Desactivadas'}
+            </button>
+          </div>
+        )}
         <div className="row">
           <div className="col-12 col-lg-8 col-xl-7 mb-4 mx-auto">
             <div className="d-flex flex-column gap-3">
@@ -341,13 +354,13 @@ function Dashboard() {
                 <p className="text-danger text-center">Error: {error}</p>
               ) : !data ? (
                 <p className="text-center">Cargando colmenas...</p>
-              ) : data.length === 0 ? (
-                <p className="text-center">No hay colmenas registradas.</p>
+              ) : filteredData.length === 0 ? (
+                <p className="text-center">No hay colmenas {showInactive ? 'desactivadas' : 'activas'} registradas.</p>
               ) : (
-                data.map((colmena, index) => (
+                filteredData.map((colmena, index) => (
                   <div
                     key={colmena.id}
-                    className="card rounded p-3 mx-2 mx-md-3 bee-card position-relative" 
+                    className="card rounded p-3 mx-2 mx-md-3 bee-card position-relative"
                     style={modalStyles.hiveCard}
                   >
                     <div className="row g-0 align-items-center">
@@ -442,10 +455,10 @@ function Dashboard() {
                         <p className="mb-0 ms-0 ms-sm-3">Ubicacion: {colmena.location}</p>
                         <p className="mb-0 ms-0 ms-sm-3">
                           <span
-                            className={`badge ${colmena.status ? 'bg-success' : 'bg-danger'}`}
+                            className={`badge ${colmena.status === 'Active' ? 'bg-success' : 'bg-danger'}`}
                             style={modalStyles.statusBadge}
                           >
-                            {colmena.status ? 'Activa' : 'Inactiva'}
+                            {colmena.status === 'Active' ? 'Activa' : 'Inactiva'}
                           </span>
                         </p>
                       </div>
@@ -578,7 +591,7 @@ function Dashboard() {
                                 {showQR ? 'Ocultar QR' : 'Ver QR'}
                               </button>
                               <button
-                                className={`btn honey-button ${selectedColmena.status ? 'btn-danger' : 'btn-success'}`}
+                                className={`btn honey-button ${selectedColmena.status === 'Active' ? 'btn-danger' : 'btn-success'}`}
                                 onClick={() => handleChangeHiveState(selectedColmena.id)}
                                 disabled={statusUpdating}
                                 style={{
@@ -594,7 +607,7 @@ function Dashboard() {
                                     aria-hidden="true"
                                   ></span>
                                 ) : null}
-                                {selectedColmena.status ? 'Deshabilitar' : 'Habilitar'}
+                                {selectedColmena.status === 'Active' ? 'Deshabilitar' : 'Habilitar'}
                               </button>
                             </div>
                           </div>
@@ -616,7 +629,7 @@ function Dashboard() {
                             </div>
 
                             {[
-                              { label: "Estado", value: <span className={`badge ${selectedColmena.status ? 'bg-success' : 'bg-danger'}`}>{selectedColmena.status ? 'Activa' : 'Inactiva'}</span> },
+                              { label: "Estado", value: <span className={`badge ${selectedColmena.status === 'Active' ? 'bg-success' : 'bg-danger'}`}>{selectedColmena.status === 'Active' ? 'Activa' : 'Inactiva'}</span> },
                               { label: "Apicultor asignado", value: `${selectedColmena.beekeeper_id.first_name} ${selectedColmena.beekeeper_id.last_name}` },
                               { label: "Cantidad cuadros cría abierta", value: selectedColmena.open_brood_frames },
                               { label: "Cantidad cuadros cría operculada", value: selectedColmena.capped_brood_frames },
