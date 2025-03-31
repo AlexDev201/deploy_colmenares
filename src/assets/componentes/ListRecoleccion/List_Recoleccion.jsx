@@ -134,9 +134,14 @@ function List_Recoleccion() {
         }
         const result = await response.json();
         
-        // Filtramos las recolecciones por la colmena específica
+        // Filtrar solo las recolecciones con estado "Active"
+        const recoleccionesActivas = result.filter(
+          recoleccion => recoleccion.status === "Active"
+        );
+        
+        // Luego filtramos por colmenaId si está presente
         if (colmenaId) {
-          const recoleccionesFiltradas = result.filter(
+          const recoleccionesFiltradas = recoleccionesActivas.filter(
             recoleccion => recoleccion.hive_id.toString() === colmenaId
           );
           setRecolecciones(recoleccionesFiltradas);
@@ -148,8 +153,8 @@ function List_Recoleccion() {
             await fetchRelatedHives(beekeeperId);
           }
         } else {
-          // Si no hay colmenaId, mostramos todas las recolecciones
-          setRecolecciones(result);
+          // Si no hay colmenaId, mostramos todas las recolecciones activas
+          setRecolecciones(recoleccionesActivas);
         }
       } catch (error) {
         console.error("Error al cargar datos:", error);
@@ -266,7 +271,7 @@ function List_Recoleccion() {
           <Col xs={12} lg={8} xl={7} className="mb-4 mx-auto">
             {/* Título y botón de ordenación */}
             <div className="d-flex justify-content-between align-items-center mb-3">
-              <h4 className="mb-0">Recolecciones</h4>
+              <h4 className="mb-0">Recolecciones Activas</h4>
               {!loading && recolecciones.length > 0 && (
                 <Button 
                   variant="outline-warning" 
@@ -285,7 +290,7 @@ function List_Recoleccion() {
               {loading ? (
                 <div className="text-center p-4">
                   <Spinner animation="border" variant="warning" />
-                  <p className="mt-2 text-muted">Cargando recolecciones...</p>
+                  <p className="mt-2 text-muted">Cargando recolecciones activas...</p>
                 </div>
               ) : error ? (
                 <Card className="shadow-sm border-danger p-3">
@@ -296,7 +301,7 @@ function List_Recoleccion() {
               ) : recolecciones.length === 0 ? (
                 <Card className="shadow-sm p-3">
                   <Card.Body className="text-center">
-                    <p>No hay recolecciones disponibles para esta colmena</p>
+                    <p>No hay recolecciones activas disponibles para esta colmena</p>
                   </Card.Body>
                 </Card>
               ) : (
@@ -331,6 +336,9 @@ function List_Recoleccion() {
                         <p className="mb-1 ms-0 ms-sm-3">Numero de colmena: {recoleccion.hive_id}</p>
                         <p className="mb-0 ms-0 ms-sm-3">Producción de Miel: {recoleccion.honey_production} gr</p>
                         <p className="mb-0 ms-0 ms-sm-3">Producción de Polen: {recoleccion.pollen_production} gr</p>
+                        <p className="mb-0 ms-0 ms-sm-3">
+                          <span className="badge bg-success">Activa</span>
+                        </p>
                       </Col>
                       <Col xs={12} sm={3} className="text-center">
                         <Form.Select 
@@ -436,6 +444,7 @@ function List_Recoleccion() {
                               { label: "Producción de Miel", value: `${selectedRecoleccion.honey_production} gr` },
                               { label: "Producción de Polen", value: `${selectedRecoleccion.pollen_production} gr` },
                               { label: "Numero de colmena", value: selectedRecoleccion.hive_id },
+                              { label: "Estado", value: "Activa" },
                               { label: "Apicultor", value: selectedRecoleccion.beekeeper ? 
                                 `${selectedRecoleccion.beekeeper.first_name} ${selectedRecoleccion.beekeeper.last_name}` :
                                 'Información no disponible' }
