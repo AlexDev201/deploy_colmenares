@@ -21,8 +21,7 @@ function List_Recoleccion() {
   const [showPopup, setShowPopup] = useState(false);
   const [beekeeperInfo, setBeekeeperInfo] = useState(null);
   const [colmenasRelacionadas, setColmenasRelacionadas] = useState([]);
-  const [colmenasActivas, setColmenasActivas] = useState([]); // Nuevo estado para colmenas activas
-  const [ordenAscendente, setOrdenAscendente] = useState(true);
+  const [ordenAscendente, setOrdenAscendente] = useState(true); // Nuevo estado para el orden
   const [modalAnimation, setModalAnimation] = useState('');
   const [detailsVisible, setDetailsVisible] = useState(false);
   const [selectValues, setSelectValues] = useState({});
@@ -120,42 +119,14 @@ function List_Recoleccion() {
     }
   }, [showPopup]);
   
-  // Función para obtener todas las colmenas activas
-  const fetchActiveHives = async () => {
-    try {
-      const response = await fetch('https://colmenaresdeleje.onrender.com/hives/list/', {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': token ? `Bearer ${token}` : '',
-        }
-      });
-      if (!response.ok) {
-        throw new Error('Error al obtener colmenas');
-      }
-      const data = await response.json();
-      // Filtrar solo colmenas activas
-      const activasHives = data.filter(colmena => colmena.is_active);
-      setColmenasActivas(activasHives);
-      return activasHives;
-    } catch (error) {
-      console.error("Error al cargar colmenas activas:", error);
-      return [];
-    }
-  };
-
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Primero obtenemos las colmenas activas
-        const activasHives = await fetchActiveHives();
-        const activasHiveIds = activasHives.map(hive => hive.id);
-        
-        // Luego obtenemos todas las recolecciones
         const response = await fetch('https://colmenaresdeleje.onrender.com/harvesting/list-hive-harvesting/', {
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': token ? `Bearer ${token}` : '',
+            'Authorization': `Bearer ${token}`
           }
         });
         if (!response.ok) {
@@ -163,34 +134,27 @@ function List_Recoleccion() {
         }
         const result = await response.json();
         
-        // Filtramos las recolecciones para mostrar solo las de colmenas activas
-        const recoleccionesFiltradas = result.filter(
-          recoleccion => activasHiveIds.includes(recoleccion.hive_id)
+        // Filtrar solo las recolecciones con estado "Active"
+        const recoleccionesActivas = result.filter(
+          recoleccion => recoleccion.hive_id.status === "Active"
         );
         
-        // Filtramos las recolecciones por la colmena específica si hay colmenaId
+        // Luego filtramos por colmenaId si está presente
         if (colmenaId) {
-          // Verificamos si la colmena específica está activa
-          if (activasHiveIds.includes(parseInt(colmenaId))) {
-            const recoleccionesDeColmena = recoleccionesFiltradas.filter(
-              recoleccion => recoleccion.hive_id.toString() === colmenaId
-            );
-            setRecolecciones(recoleccionesDeColmena);
-            
-            // Si hay recolecciones, podemos obtener info del apicultor de la primera
-            if (recoleccionesDeColmena.length > 0) {
-              const beekeeperId = recoleccionesDeColmena[0].beekeeper;
-              await fetchBeekeeperInfo(beekeeperId);
-              await fetchRelatedHives(beekeeperId);
-            }
-          } else {
-            // La colmena específica no está activa, mostramos mensaje
-            setRecolecciones([]);
-            setError("Esta colmena no está activa o no existe");
+          const recoleccionesFiltradas = recoleccionesActivas.filter(
+            recoleccion => recoleccion.hive_id.toString() === colmenaId
+          );
+          setRecolecciones(recoleccionesFiltradas);
+          
+          // Si hay recolecciones, podemos obtener info del apicultor de la primera
+          if (recoleccionesFiltradas.length > 0) {
+            const beekeeperId = recoleccionesFiltradas[0].beekeeper;
+            await fetchBeekeeperInfo(beekeeperId);
+            await fetchRelatedHives(beekeeperId);
           }
         } else {
-          // Si no hay colmenaId, mostramos todas las recolecciones de colmenas activas
-          setRecolecciones(recoleccionesFiltradas);
+          // Si no hay colmenaId, mostramos todas las recolecciones activas
+          setRecolecciones(recoleccionesActivas);
         }
       } catch (error) {
         console.error("Error al cargar datos:", error);
@@ -220,9 +184,7 @@ function List_Recoleccion() {
           throw new Error('Error al obtener colmenas relacionadas');
         }
         const data = await response.json();
-        // Filtramos para mostrar solo las colmenas activas
-        const activasRelatedHives = data.filter(colmena => colmena.is_active);
-        setColmenasRelacionadas(activasRelatedHives);
+        setColmenasRelacionadas(data);
       } catch (error) {
         console.error("Error al cargar colmenas relacionadas:", error);
       }
@@ -309,7 +271,7 @@ function List_Recoleccion() {
           <Col xs={12} lg={8} xl={7} className="mb-4 mx-auto">
             {/* Título y botón de ordenación */}
             <div className="d-flex justify-content-between align-items-center mb-3">
-              <h4 className="mb-0">Recolecciones de Colmenas Activas</h4>
+              <h4 className="mb-0">Recolecciones Activas</h4>
               {!loading && recolecciones.length > 0 && (
                 <Button 
                   variant="outline-warning" 
@@ -328,7 +290,7 @@ function List_Recoleccion() {
               {loading ? (
                 <div className="text-center p-4">
                   <Spinner animation="border" variant="warning" />
-                  <p className="mt-2 text-muted">Cargando recolecciones de colmenas activas...</p>
+                  <p className="mt-2 text-muted">Cargando recolecciones activas...</p>
                 </div>
               ) : error ? (
                 <Card className="shadow-sm border-danger p-3">
@@ -339,7 +301,7 @@ function List_Recoleccion() {
               ) : recolecciones.length === 0 ? (
                 <Card className="shadow-sm p-3">
                   <Card.Body className="text-center">
-                    <p>No hay recolecciones disponibles para colmenas activas</p>
+                    <p>No hay recolecciones activas disponibles para esta colmena</p>
                   </Card.Body>
                 </Card>
               ) : (
@@ -374,6 +336,9 @@ function List_Recoleccion() {
                         <p className="mb-1 ms-0 ms-sm-3">Numero de colmena: {recoleccion.hive_id}</p>
                         <p className="mb-0 ms-0 ms-sm-3">Producción de Miel: {recoleccion.honey_production} gr</p>
                         <p className="mb-0 ms-0 ms-sm-3">Producción de Polen: {recoleccion.pollen_production} gr</p>
+                        <p className="mb-0 ms-0 ms-sm-3">
+                          <span className="badge bg-success">Activa</span>
+                        </p>
                       </Col>
                       <Col xs={12} sm={3} className="text-center">
                         <Form.Select 
@@ -479,6 +444,7 @@ function List_Recoleccion() {
                               { label: "Producción de Miel", value: `${selectedRecoleccion.honey_production} gr` },
                               { label: "Producción de Polen", value: `${selectedRecoleccion.pollen_production} gr` },
                               { label: "Numero de colmena", value: selectedRecoleccion.hive_id },
+                              { label: "Estado", value: "Activa" },
                               { label: "Apicultor", value: selectedRecoleccion.beekeeper ? 
                                 `${selectedRecoleccion.beekeeper.first_name} ${selectedRecoleccion.beekeeper.last_name}` :
                                 'Información no disponible' }

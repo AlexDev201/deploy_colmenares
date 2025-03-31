@@ -141,7 +141,7 @@ function List_Monitoreo() {
         
         // Filtrar solo los monitoreos de colmenas activas
         const monitoreosActivos = result.filter(monitoreo => 
-          monitoreo.hive && monitoreo.hive.status === 'Active'
+          monitoreo.hive_id.status === 'Active'
         );
         
         setMonitoreos(monitoreosActivos);
