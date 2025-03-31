@@ -34,7 +34,8 @@ function List_Recoleccion() {
         while (c.charAt(0) == ' ') c = c.substring(1, c.length);
         if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
     }
-    return null;}
+    return null;
+  }
   const token = getCookie('token');
   const role = getCookie('role');
   
@@ -142,7 +143,7 @@ function List_Recoleccion() {
         // Luego filtramos por colmenaId si está presente
         if (colmenaId) {
           const recoleccionesFiltradas = recoleccionesActivas.filter(
-            recoleccion => recoleccion.hive_id.toString() === colmenaId
+            recoleccion => recoleccion.hive_id.id.toString() === colmenaId // Corrección aquí para comparar con id
           );
           setRecolecciones(recoleccionesFiltradas);
           
@@ -333,7 +334,7 @@ function List_Recoleccion() {
                       </Col>
                       <Col xs={12} sm={5} className="text-center text-sm-start mb-3 mb-sm-0">
                         <h3 className="mb-1 ms-0 ms-sm-3">Fecha: {formatDate(recoleccion.harvest_date)}</h3>
-                        <p className="mb-1 ms-0 ms-sm-3">Numero de colmena: {recoleccion.hive_id}</p>
+                        <p className="mb-1 ms-0 ms-sm-3">Numero de colmena: {recoleccion.hive_id.id}</p>
                         <p className="mb-0 ms-0 ms-sm-3">Producción de Miel: {recoleccion.honey_production} gr</p>
                         <p className="mb-0 ms-0 ms-sm-3">Producción de Polen: {recoleccion.pollen_production} gr</p>
                         <p className="mb-0 ms-0 ms-sm-3">
@@ -443,7 +444,7 @@ function List_Recoleccion() {
                               { label: "Fecha", value: formatDate(selectedRecoleccion.harvest_date) },
                               { label: "Producción de Miel", value: `${selectedRecoleccion.honey_production} gr` },
                               { label: "Producción de Polen", value: `${selectedRecoleccion.pollen_production} gr` },
-                              { label: "Numero de colmena", value: selectedRecoleccion.hive_id },
+                              { label: "Numero de colmena", value: selectedRecoleccion.hive_id.id },
                               { label: "Estado", value: "Activa" },
                               { label: "Apicultor", value: selectedRecoleccion.beekeeper ? 
                                 `${selectedRecoleccion.beekeeper.first_name} ${selectedRecoleccion.beekeeper.last_name}` :
