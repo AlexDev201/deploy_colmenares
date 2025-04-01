@@ -151,10 +151,10 @@ function Historial() {
         for (const colmena of result) {
           promises.push(
             Promise.all([
-              fetch(`https://colmenaresdeleje.onrender.com/monitoring/beehive-monitoring/${colmena.id}/`, {
+              fetch(`https://colmenaresdeleje.onrender.com/monitoring/list-beehive-monitoring//${colmena.id}/`, {
                 headers: { 'Authorization': `Bearer ${token}` },
               }),
-              fetch(`https://colmenaresdeleje.onrender.com/harvesting/hive-harvesting/${colmena.id}/`, {
+              fetch(`https://colmenaresdeleje.onrender.com/harvesting/list-hive-harvesting/${colmena.id}/`, {
                 headers: { 'Authorization': `Bearer ${token}` },
               })
             ]).then(async ([monitoringResponse, collectionResponse]) => {
