@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import NavBar from '../Single_Components/NavBar';
 import Admin_Nav_Bar from '../Single_Components/Admin_Nav_Bar';
 import Footer from '../Single_Components/Footer';
@@ -15,12 +15,12 @@ function HistoryCard({ colmenaId, monitorings, harvestings }) {
   const colmenaIdStr = String(colmenaId);
 
   const filteredMonitorings = monitorings.filter(mon => {
-    const hiveId = mon.hive_id?.id ?? mon.hive_id; // Usa hive_id.id si existe, sino hive_id directamente
+    const hiveId = mon.hive_id?.id ?? mon.hive_id;
     return String(hiveId) === colmenaIdStr;
   });
 
   const filteredHarvestings = harvestings.filter(harv => {
-    const hiveId = harv.hive_id?.id ?? harv.hive_id; // Usa hive_id.id si existe, sino hive_id directamente
+    const hiveId = harv.hive_id?.id ?? harv.hive_id;
     return String(hiveId) === colmenaIdStr;
   });
 
@@ -59,6 +59,7 @@ function HistoryCard({ colmenaId, monitorings, harvestings }) {
     </div>
   );
 }
+
 function Historial() {
   const [data, setData] = useState([]);
   const [monitorings, setMonitorings] = useState([]);
@@ -67,6 +68,7 @@ function Historial() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const imagenes = [imagen1, imagen2, imagen3];
+  const contentRef = useRef(null); // Referencia para el contenido a convertir a PDF
 
   function getCookie(name) {
     const nameEQ = name + "=";
@@ -107,10 +109,6 @@ function Historial() {
         const monitoringsData = await monitoringsResponse.json();
         const harvestingsData = await harvestingsResponse.json();
 
-        console.log('[Historial] Colmenas cargadas:', hivesData);
-        console.log('[Historial] Monitoreos cargados:', monitoringsData);
-        console.log('[Historial] Recolecciones cargadas:', harvestingsData);
-
         setData(Array.isArray(hivesData) ? hivesData : []);
         setMonitorings(Array.isArray(monitoringsData) ? monitoringsData : []);
         setHarvestings(Array.isArray(harvestingsData) ? harvestingsData : []);
@@ -131,42 +129,39 @@ function Historial() {
     if (!element) return;
 
     try {
-      // Capture the content using html2canvas
-      const canvas = await html2canvas(element, {
-        scale: 2, // Increase resolution
-        useCORS: true, // Enable CORS for images
+      // Añadir margen al PDF
+      const margin = 10;
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const options = {
+        scale: 2,
+        useCORS: true,
         logging: false,
-        scrollY: -window.scrollY, // Handle scrolling
-      });
+        scrollY: -window.scrollY,
+      };
 
+      const canvas = await html2canvas(element, options);
       const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4'
-      });
-
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      const imgProps = pdf.getImageProperties(imgData);
-      const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
       
-      // If content is taller than one page, add multiple pages
-      let heightLeft = imgHeight;
-      let position = 0;
-
+      const pdfWidth = pdf.internal.pageSize.getWidth() - 2 * margin;
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      
+      let heightLeft = pdfHeight;
+      let position = margin;
+      
+      pdf.addImage(imgData, 'PNG', margin, position, pdfWidth, pdfHeight);
+      heightLeft -= pdf.internal.pageSize.getHeight();
+      
       while (heightLeft >= 0) {
-        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
-        heightLeft -= pdfHeight;
-        position -= pdfHeight;
-        if (heightLeft > 0) {
-          pdf.addPage();
-        }
+        position = heightLeft - pdfHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', margin, position, pdfWidth, pdfHeight);
+        heightLeft -= pdf.internal.pageSize.getHeight();
       }
 
       pdf.save('Reporte_Historial_Colmenas.pdf');
     } catch (error) {
       console.error('Error generating PDF:', error);
+      alert('Error al generar el PDF. Por favor, inténtelo de nuevo.');
     }
   };
 
@@ -183,7 +178,7 @@ function Historial() {
   return (
     <div className="d-flex flex-column min-vh-100">
       {role === 'admin' ? <Admin_Nav_Bar /> : <NavBar />}
-      <div className="container-fluid flex-grow-1 py-3">
+      <div className="container-fluid flex-grow-1 py-3" ref={contentRef}>
         <div className="row justify-content-center">
           <div className="col-12 col-lg-10 mb-4">
             <h2 className="text-center mb-4">Historial Completo de Colmenas</h2>
@@ -243,13 +238,21 @@ function Historial() {
                   </div>
                 ))
               )}
-              {!loading && data.length > 0 && (
-                <button className="btn btn-primary mt-3 mx-auto d-block" onClick={generatePDF}>Generar PDF</button>
-              )}
             </div>
           </div>
         </div>
       </div>
+      {!loading && data.length > 0 && (
+        <div className="text-center mb-4">
+          <button 
+            className="btn btn-primary" 
+            onClick={generatePDF}
+            style={{ padding: '10px 20px', fontSize: '1.1rem' }}
+          >
+            Generar PDF del Historial
+          </button>
+        </div>
+      )}
       <Footer />
     </div>
   );
