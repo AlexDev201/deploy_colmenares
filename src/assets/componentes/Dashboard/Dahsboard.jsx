@@ -41,51 +41,29 @@ function Dashboard() {
   const token = getCookie('token');
   const imagenes = [imagen1, imagen2, imagen3];
 
-  if (role === 'beekeeper') {
-    useEffect(() => {
-      const fetchData = async () => {
-        try {
-          const response = await fetch('https://colmenaresdeleje.onrender.com/beehive/list-hives/', {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-            },
-          });
-          if (!response.ok) {
-            throw new Error('Error en la respuesta del servidor');
-          }
-          const result = await response.json();
-          const activeBees = result.filter(colmena => colmena.status === 'Active');
-          setData(activeBees);
-        } catch (error) {
-          setError(error.message);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const endpoint = role === 'admin'
+          ? 'https://colmenaresdeleje.onrender.com/beehive/list-hives-admin/'
+          : 'https://colmenaresdeleje.onrender.com/beehive/list-hives/';
+        const response = await fetch(endpoint, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        if (!response.ok) {
+          throw new Error('Error en la respuesta del servidor');
         }
-      };
-      fetchData();
-    }, []);
-  }
-
-  if (role === 'admin') {
-    useEffect(() => {
-      const fetchData = async () => {
-        try {
-          const response = await fetch('https://colmenaresdeleje.onrender.com/beehive/list-hives-admin/', {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-            },
-          });
-          if (!response.ok) {
-            throw new Error('Error en la respuesta del servidor');
-          }
-          const result = await response.json();
-          const activeBees = result.filter(colmena => colmena.status === 'Active');
-          setData(activeBees);
-        } catch (error) {
-          setError(error.message);
-        }
-      };
-      fetchData();
-    }, []);
-  }
+        const result = await response.json();
+        const activeBees = result.filter(colmena => colmena.status === 'Active');
+        setData(activeBees);
+      } catch (error) {
+        setError(error.message);
+      }
+    };
+    fetchData();
+  }, [role, token]);
 
   useEffect(() => {
     if (showPopup) {
@@ -173,8 +151,6 @@ function Dashboard() {
         throw new Error(errorData.error || 'Error al actualizar el estado');
       }
 
-      const result = await response.json();
-
       if (!nuevoEstado) {
         setData(prevData => prevData.filter(colmena => colmena.id !== colmenaId));
         if (showPopup && selectedColmenaId === colmenaId) {
@@ -247,7 +223,7 @@ function Dashboard() {
       transform: detailsVisible ? 'translateY(0)' : 'translateY(20px)',
       transition: 'opacity 0.5s ease-out, transform 0.5s ease-out',
     },
-    qrAnimation: { 
+    qrAnimation: {
       opacity: showQR ? 1 : 0,
       maxHeight: showQR ? '300px' : '0px',
       transition: 'opacity 0.4s ease, max-height 0.4s ease',
@@ -263,7 +239,7 @@ function Dashboard() {
       transform: 'translateZ(0)',
       cursor: 'pointer',
       border: '1px solid black',
-      boxShadow: '0 15px 30px rgba(0,0,0,0.25)', 
+      boxShadow: '0 15px 30px rgba(0,0,0,0.25)',
     },
     hiveCardHover: {
       boxShadow: '0 10px 20px rgba(0,0,0,0.1)',
@@ -347,7 +323,7 @@ function Dashboard() {
                 data.map((colmena, index) => (
                   <div
                     key={colmena.id}
-                    className="card rounded p-3 mx-2 mx-md-3 bee-card position-relative" 
+                    className="card rounded p-3 mx-2 mx-md-3 bee-card position-relative"
                     style={modalStyles.hiveCard}
                   >
                     <div className="row g-0 align-items-center">
@@ -468,10 +444,13 @@ function Dashboard() {
                   </div>
                 ))
               )}
-              <button className="btn btn-primary mt-3 mx-auto d-block" onClick={() => navigate('/Historial')}>
+            </div>
+            <button
+              className="btn btn-primary mt-3 mx-auto d-block"
+              onClick={() => navigate('/Historial')}
+            >
               Ver Historial Completo
             </button>
-            </div>
           </div>
 
           <div className="col-12 col-lg-4 col-xl-3">
@@ -667,4 +646,4 @@ function Dashboard() {
   );
 }
 
-export default Dashboard; 
+export default Dashboard;

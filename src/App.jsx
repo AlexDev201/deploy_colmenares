@@ -19,6 +19,7 @@ import Edit_Monitoreo from './assets/componentes/Edit_Monitoreo/Edit_Monitoreo';
 import Edit_Recoleccion from './assets/componentes/Edit_Recoleccion/Edit_Recoleccion';
 import First_Registration from './assets/componentes/First_Registration.jsx/First_Registration';
 import PublicColmenaView from './assets/componentes/Public_Hive_View/Public_Hive_View';
+import Historial from './assets/componentes/Historial/Historial';
 function App() {
   return (
     <BrowserRouter>
@@ -41,6 +42,7 @@ function App() {
           <Route path="/ViewApicultor" element={<ViewApicultor/>} />
           <Route path="/EditUser/:id" element={<EditUser />} />
           <Route path='/UserRegister' element= {<UserRegister />} />
+          <Route path="/Historial" element={<Historial />} />
         </Route>
 
         {/* Rutas accesibles para ADMIN y APICULTOR */}
