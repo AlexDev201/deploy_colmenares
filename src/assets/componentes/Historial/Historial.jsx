@@ -14,13 +14,14 @@ function HistoryCard({ colmenaId, monitorings, harvestings }) {
   const colmenaIdStr = String(colmenaId);
 
   const filteredMonitorings = monitorings.filter(mon => {
-    const hiveId = mon.hive_id?.id ?? mon.hive_id; // Usa hive_id.id si existe, sino hive_id directamente
-    return String(hiveId) === colmenaIdStr;
+    const match = String(mon.hive_id) === colmenaIdStr;
+    console.log(`[HistoryCard] Comparando monitoreo hive_id: ${mon.hive_id} con colmenaId: ${colmenaId} -> ${match}`);
+    return match;
   });
-
   const filteredHarvestings = harvestings.filter(harv => {
-    const hiveId = harv.hive_id?.id ?? harv.hive_id; // Usa hive_id.id si existe, sino hive_id directamente
-    return String(hiveId) === colmenaIdStr;
+    const match = String(harv.hive_id) === colmenaIdStr;
+    console.log(`[HistoryCard] Comparando recolección hive_id: ${harv.hive_id} con colmenaId: ${colmenaId} -> ${match}`);
+    return match;
   });
 
   return (
@@ -58,6 +59,7 @@ function HistoryCard({ colmenaId, monitorings, harvestings }) {
     </div>
   );
 }
+
 function Historial() {
   const [data, setData] = useState([]);
   const [monitorings, setMonitorings] = useState([]);
@@ -141,6 +143,8 @@ function Historial() {
       doc.setFontSize(10);
       doc.text(`Ubicación: ${colmena.location || 'N/A'}`, 10, yOffset);
       yOffset += 5;
+      doc.text(`Estado: ${colmena.status || 'N/A'}`, 10, yOffset);
+      yOffset += 5;
       // ... resto del código de PDF
     });
 
@@ -181,16 +185,36 @@ function Historial() {
                             src={imagenes[index % imagenes.length]}
                             alt="Imagen de la colmena"
                             className="img-fluid rounded"
-                            style={{ width: '100%', height: '150px', objectFit: 'cover' }}
+                            style={{ width: '100%', height: '150px', objectFit: 'cover', transition: 'transform 0.3s ease' }}
+                            onMouseOver={(e) => (e.target.style.transform = 'scale(1.05)')}
+                            onMouseOut={(e) => (e.target.style.transform = 'scale(1)')}
                           />
                         </div>
-                        <div className="col-12 col-sm-7 text-center text-sm-start">
+                        <div className="col-12 col-sm-7 text-center text-sm-start mb-3 mb-sm-0">
                           <h3 className="mb-1 ms-0 ms-sm-3">Numero de colmena: {colmena.id}</h3>
                           <p className="mb-0 ms-0 ms-sm-3">Ubicación: {colmena.location || 'N/A'}</p>
                           <p className="mb-0 ms-0 ms-sm-3">
                             <strong>Estado:</strong> <span className={`badge ${colmena.status === 'Active' ? 'bg-success' : 'bg-danger'}`}>{colmena.status === 'Active' ? 'Activa' : 'Inactiva'}</span>
                           </p>
-                          {/* ... resto de los datos de la colmena */}
+                          <p className="mb-0 ms-0 ms-sm-3"><strong>Apicultor asignado:</strong> {colmena.beekeeper_id?.first_name} {colmena.beekeeper_id?.last_name}</p>
+                          <p className="mb-0 ms-0 ms-sm-3"><strong>Cuadros cría abierta:</strong> {colmena.open_brood_frames || 'N/A'}</p>
+                          <p className="mb-0 ms-0 ms-sm-3"><strong>Cuadros cría operculada:</strong> {colmena.capped_brood_frames || 'N/A'}</p>
+                          <p className="mb-0 ms-0 ms-sm-3"><strong>Cuadros de comida:</strong> {colmena.food_frames || 'N/A'}</p>
+                          <p className="mb-0 ms-0 ms-sm-3"><strong>Presencia reina:</strong> {colmena.queen_presence ? 'Sí' : 'No'}</p>
+                          <p className="mb-0 ms-0 ms-sm-3"><strong>Color reina:</strong> {colmena.queen_color || 'N/A'}</p>
+                          <p className="mb-0 ms-0 ms-sm-3"><strong>Origen reina:</strong> {colmena.origin || 'N/A'}</p>
+                          <p className="mb-0 ms-0 ms-sm-3"><strong>Observaciones:</strong> {colmena.observations || 'N/A'}</p>
+                          {colmena.id_weather_conditions && (
+                            <>
+                              <p className="mb-0 ms-0 ms-sm-3"><strong>Grados centígrados:</strong> {colmena.id_weather_conditions.temp_c || 'N/A'}</p>
+                              <p className="mb-0 ms-0 ms-sm-3"><strong>Grados Fahrenheit:</strong> {colmena.id_weather_conditions.temp_f || 'N/A'}</p>
+                              <p className="mb-0 ms-0 ms-sm-3"><strong>Condiciones:</strong> {colmena.id_weather_conditions.text || 'N/A'}</p>
+                              <p className="mb-0 ms-0 ms-sm-3"><strong>Velocidad del viento:</strong> {colmena.id_weather_conditions.wind_kph || 'N/A'} kph</p>
+                              <p className="mb-0 ms-0 ms-sm-3"><strong>Presión:</strong> {colmena.id_weather_conditions.pressure_mb || 'N/A'} mb</p>
+                              <p className="mb-0 ms-0 ms-sm-3"><strong>Índices de humedad:</strong> {colmena.id_weather_conditions.humidity_indices || 'N/A'}</p>
+                            </>
+                          )}
+                          <p className="mb-0 ms-0 ms-sm-3"><strong>Fecha de creación:</strong> {new Date(colmena.registration_date).toISOString().split('T')[0] || 'N/A'}</p>
                         </div>
                       </div>
                     </div>
