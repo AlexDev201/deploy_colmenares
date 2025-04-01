@@ -13,16 +13,20 @@ import jsPDF from 'jspdf';
 function HistoryCard({ colmenaId, token }) {
   const [historyData, setHistoryData] = useState({ monitorings: [], collections: [] });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const monitoringResponse = await fetch(`https://colmenaresdeleje.onrender.com/beehive/monitoring/${colmenaId}/`, {
-          headers: { 'Authorization': `Bearer ${token}` },
-        });
-        const collectionResponse = await fetch(`https://colmenaresdeleje.onrender.com/beehive/collection/${colmenaId}/`, {
-          headers: { 'Authorization': `Bearer ${token}` },
-        });
+        // Realizamos ambas peticiones al mismo tiempo para optimizar
+        const [monitoringResponse, collectionResponse] = await Promise.all([
+          fetch(`https://colmenaresdeleje.onrender.com/beehive/monitoring/${colmenaId}/`, {
+            headers: { 'Authorization': `Bearer ${token}` },
+          }),
+          fetch(`https://colmenaresdeleje.onrender.com/beehive/collection/${colmenaId}/`, {
+            headers: { 'Authorization': `Bearer ${token}` },
+          })
+        ]);
 
         if (!monitoringResponse.ok || !collectionResponse.ok) {
           throw new Error('Error al cargar el historial');
@@ -30,48 +34,127 @@ function HistoryCard({ colmenaId, token }) {
 
         const monitorings = await monitoringResponse.json();
         const collections = await collectionResponse.json();
-        setHistoryData({ monitorings, collections });
+        
+        // Ordenamos por fecha de más reciente a más antigua
+        const sortedMonitorings = monitorings.sort((a, b) => new Date(b.date) - new Date(a.date));
+        const sortedCollections = collections.sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        setHistoryData({ 
+          monitorings: sortedMonitorings, 
+          collections: sortedCollections 
+        });
       } catch (error) {
         console.error('Error fetching history:', error);
+        setError(error.message);
       } finally {
         setLoading(false);
       }
     };
+    
     fetchHistory();
   }, [colmenaId, token]);
 
   return (
-    <div className="card rounded p-3 mx-2 mx-md-3 mt-3" style={{ border: '1px solid black', boxShadow: '0 15px 30px rgba(0,0,0,0.25)' }}>
+    <div className="card rounded p-3 mx-2 mx-md-3 mt-3" style={{ 
+      border: '1px solid black', 
+      boxShadow: '0 15px 30px rgba(0,0,0,0.25)',
+      backgroundColor: '#fff8e6' // Fondo amarillo claro para relacionarlo con la miel
+    }}>
       <h4 className="text-center mb-3">Historial de Colmena {colmenaId}</h4>
+      
       {loading ? (
-        <p className="text-center">Cargando historial...</p>
+        <div className="text-center">
+          <div className="spinner-border text-warning" role="status">
+            <span className="visually-hidden">Cargando historial...</span>
+          </div>
+          <p className="mt-2">Cargando historial...</p>
+        </div>
+      ) : error ? (
+        <div className="alert alert-danger" role="alert">
+          Error al cargar el historial: {error}
+        </div>
       ) : (
-        <>
-          <h5>Monitoreos</h5>
-          {historyData.monitorings.length === 0 ? (
-            <p>No hay monitoreos registrados.</p>
-          ) : (
-            <ul>
-              {historyData.monitorings.map((mon, index) => (
-                <li key={index}>
-                  Fecha: {new Date(mon.date).toLocaleDateString()} - Observaciones: {mon.observations}
-                </li>
-              ))}
-            </ul>
-          )}
-          <h5>Recolecciones</h5>
-          {historyData.collections.length === 0 ? (
-            <p>No hay recolecciones registradas.</p>
-          ) : (
-            <ul>
-              {historyData.collections.map((col, index) => (
-                <li key={index}>
-                  Fecha: {new Date(col.date).toLocaleDateString()} - Cantidad: {col.quantity} kg
-                </li>
-              ))}
-            </ul>
-          )}
-        </>
+        <div className="row">
+          {/* Columna de Monitoreos */}
+          <div className="col-12 col-md-6 mb-3">
+            <div className="card h-100">
+              <div className="card-header bg-warning bg-opacity-75">
+                <h5 className="mb-0 text-center">
+                  <i className="bi bi-clipboard-check me-2"></i>
+                  Monitoreos ({historyData.monitorings.length})
+                </h5>
+              </div>
+              <div className="card-body" style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                {historyData.monitorings.length === 0 ? (
+                  <p className="text-center text-muted py-3">No hay monitoreos registrados.</p>
+                ) : (
+                  <div className="list-group">
+                    {historyData.monitorings.map((mon, index) => (
+                      <div key={index} className="list-group-item list-group-item-action">
+                        <div className="d-flex w-100 justify-content-between">
+                          <h6 className="mb-1">
+                            <i className="bi bi-calendar-date me-2"></i>
+                            {new Date(mon.date).toLocaleDateString()}
+                          </h6>
+                        </div>
+                        <p className="mb-1">
+                          <strong>Observaciones:</strong> {mon.observations || 'Sin observaciones'}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+          
+          {/* Columna de Recolecciones */}
+          <div className="col-12 col-md-6 mb-3">
+            <div className="card h-100">
+              <div className="card-header bg-warning bg-opacity-75">
+                <h5 className="mb-0 text-center">
+                  <i className="bi bi-bucket me-2"></i>
+                  Recolecciones ({historyData.collections.length})
+                </h5>
+              </div>
+              <div className="card-body" style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                {historyData.collections.length === 0 ? (
+                  <p className="text-center text-muted py-3">No hay recolecciones registradas.</p>
+                ) : (
+                  <div className="list-group">
+                    {historyData.collections.map((col, index) => (
+                      <div key={index} className="list-group-item list-group-item-action">
+                        <div className="d-flex w-100 justify-content-between">
+                          <h6 className="mb-1">
+                            <i className="bi bi-calendar-date me-2"></i>
+                            {new Date(col.date).toLocaleDateString()}
+                          </h6>
+                          <span className="badge bg-warning text-dark">
+                            {col.quantity} kg
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+          
+          {/* Resumen Estadístico */}
+          <div className="col-12 mt-2">
+            <div className="alert alert-warning mb-0">
+              <div className="row text-center">
+                <div className="col-6">
+                  <strong>Total Monitoreos:</strong> {historyData.monitorings.length}
+                </div>
+                <div className="col-6">
+                  <strong>Total Recolectado:</strong> {historyData.collections.reduce((sum, item) => sum + item.quantity, 0)} kg
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
