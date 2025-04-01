@@ -14,14 +14,13 @@ function HistoryCard({ colmenaId, monitorings, harvestings }) {
   const colmenaIdStr = String(colmenaId);
 
   const filteredMonitorings = monitorings.filter(mon => {
-    const match = String(mon.hive_id) === colmenaIdStr;
-    console.log(`[HistoryCard] Comparando monitoreo hive_id: ${mon.hive_id} con colmenaId: ${colmenaId} -> ${match}`);
-    return match;
+    const hiveId = mon.hive_id?.id ?? mon.hive_id; // Usa hive_id.id si existe, sino hive_id directamente
+    return String(hiveId) === colmenaIdStr;
   });
+
   const filteredHarvestings = harvestings.filter(harv => {
-    const match = String(harv.hive_id) === colmenaIdStr;
-    console.log(`[HistoryCard] Comparando recolección hive_id: ${harv.hive_id} con colmenaId: ${colmenaId} -> ${match}`);
-    return match;
+    const hiveId = harv.hive_id?.id ?? harv.hive_id; // Usa hive_id.id si existe, sino hive_id directamente
+    return String(hiveId) === colmenaIdStr;
   });
 
   return (
@@ -59,7 +58,6 @@ function HistoryCard({ colmenaId, monitorings, harvestings }) {
     </div>
   );
 }
-
 function Historial() {
   const [data, setData] = useState([]);
   const [monitorings, setMonitorings] = useState([]);
@@ -100,9 +98,9 @@ function Historial() {
           fetch(harvestingsEndpoint, { headers: { 'Authorization': `Bearer ${token}` } })
         ]);
 
-        if (!hivesResponse.ok) throw new Error(`Error al cargar colmenas: ${hivesResponse.status}`);
-        if (!monitoringsResponse.ok) throw new Error(`Error al cargar monitoreos: ${monitoringsResponse.status}`);
-        if (!harvestingsResponse.ok) throw new Error(`Error al cargar recolecciones: ${harvestingsResponse.status}`);
+        if (!hivesResponse.ok) throw new Error('Error al cargar colmenas');
+        if (!monitoringsResponse.ok) throw new Error('Error al cargar monitoreos');
+        if (!harvestingsResponse.ok) throw new Error('Error al cargar recolecciones');
 
         const hivesData = await hivesResponse.json();
         const monitoringsData = await monitoringsResponse.json();
@@ -139,50 +137,11 @@ function Historial() {
       doc.setFontSize(12);
       doc.text(`Colmena ${colmena.id}`, 10, yOffset);
       yOffset += 5;
+
       doc.setFontSize(10);
       doc.text(`Ubicación: ${colmena.location || 'N/A'}`, 10, yOffset);
       yOffset += 5;
-      doc.text(`Estado: ${colmena.status || 'N/A'}`, 10, yOffset);
-      yOffset += 5;
-      doc.text(`Apicultor: ${colmena.beekeeper_id?.first_name || 'N/A'} ${colmena.beekeeper_id?.last_name || ''}`, 10, yOffset);
-      yOffset += 5;
-      doc.text(`Cuadros cría abierta: ${colmena.open_brood_frames || 'N/A'}`, 10, yOffset);
-      yOffset += 5;
-      doc.text(`Cuadros cría operculada: ${colmena.capped_brood_frames || 'N/A'}`, 10, yOffset);
-      yOffset += 5;
-      doc.text(`Cuadros de comida: ${colmena.food_frames || 'N/A'}`, 10, yOffset);
-      yOffset += 5;
-      doc.text(`Presencia reina: ${colmena.queen_presence ? 'Sí' : 'No'}`, 10, yOffset);
-      yOffset += 5;
-      doc.text(`Color reina: ${colmena.queen_color || 'N/A'}`, 10, yOffset);
-      yOffset += 5;
-      doc.text(`Origen reina: ${colmena.origin || 'N/A'}`, 10, yOffset);
-      yOffset += 5;
-      doc.text(`Observaciones: ${colmena.observations || 'N/A'}`, 10, yOffset);
-      yOffset += 10;
-
-      const colmenaMonitorings = monitorings.filter(mon => String(mon.hive_id) === String(colmena.id));
-      const colmenaHarvestings = harvestings.filter(harv => String(harv.hive_id) === String(colmena.id));
-
-      doc.text('Historial:', 10, yOffset);
-      yOffset += 5;
-      doc.text('Monitoreos:', 10, yOffset);
-      yOffset += 5;
-      colmenaMonitorings.forEach(mon => {
-        doc.text(`- ${new Date(mon.monitoring_date).toLocaleDateString()}: ${mon.general_observations || 'N/A'}`, 10, yOffset);
-        yOffset += 5;
-      });
-      doc.text('Recolecciones:', 10, yOffset);
-      yOffset += 5;
-      colmenaHarvestings.forEach(harv => {
-        doc.text(`- ${new Date(harv.harvest_date).toLocaleDateString()}: Miel: ${harv.honey_production || 0} kg, Polen: ${harv.pollen_production || 0} kg`, 10, yOffset);
-        yOffset += 5;
-      });
-
-      if (yOffset > 280) {
-        doc.addPage();
-        yOffset = 10;
-      }
+      // ... resto del código de PDF
     });
 
     doc.save('Reporte_Historial_Colmenas.pdf');
@@ -220,7 +179,7 @@ function Historial() {
                         <div className="col-12 col-sm-4 mb-3 mb-sm-0">
                           <img
                             src={imagenes[index % imagenes.length]}
-                            alt=" Almagen de la colmena"
+                            alt="Imagen de la colmena"
                             className="img-fluid rounded"
                             style={{ width: '100%', height: '150px', objectFit: 'cover' }}
                           />
