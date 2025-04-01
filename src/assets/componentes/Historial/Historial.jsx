@@ -143,7 +143,6 @@ function Historial() {
         const result = await response.json();
         setData(result);
         
-        // Después de obtener las colmenas, hacemos las peticiones de monitoreo y recolección para cada una
         const historyDataObj = {};
         
         // Hacemos todas las peticiones en paralelo para optimizar
@@ -151,10 +150,10 @@ function Historial() {
         for (const colmena of result) {
           promises.push(
             Promise.all([
-              fetch(`https://colmenaresdeleje.onrender.com/monitoring/list-beehive-monitoring//${colmena.id}/`, {
+              fetch(`https://colmenaresdeleje.onrender.com/monitoring/list-beehive-monitoring/`, {
                 headers: { 'Authorization': `Bearer ${token}` },
               }),
-              fetch(`https://colmenaresdeleje.onrender.com/harvesting/list-hive-harvesting/${colmena.id}/`, {
+              fetch(`https://colmenaresdeleje.onrender.com/harvesting/list-hive-harvesting/`, {
                 headers: { 'Authorization': `Bearer ${token}` },
               })
             ]).then(async ([monitoringResponse, collectionResponse]) => {
