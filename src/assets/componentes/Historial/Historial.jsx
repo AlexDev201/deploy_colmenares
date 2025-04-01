@@ -10,68 +10,42 @@ import imagen2 from 'src/img/imagen_ejemplo.jpg';
 import imagen3 from 'src/img/images.jpeg';
 import jsPDF from 'jspdf';
 
-function HistoryCard({ colmenaId, token }) {
-  const [historyData, setHistoryData] = useState({ monitorings: [], collections: [] });
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchHistory = async () => {
-      try {
-        const monitoringResponse = await fetch(`https://colmenaresdeleje.onrender.com/beehive/monitoring/${colmenaId}/`, {
-          headers: { 'Authorization': `Bearer ${token}` },
-        });
-        const collectionResponse = await fetch(`https://colmenaresdeleje.onrender.com/beehive/collection/${colmenaId}/`, {
-          headers: { 'Authorization': `Bearer ${token}` },
-        });
-
-        if (!monitoringResponse.ok || !collectionResponse.ok) {
-          throw new Error('Error al cargar el historial');
-        }
-
-        const monitorings = await monitoringResponse.json();
-        const collections = await collectionResponse.json();
-        setHistoryData({ monitorings, collections });
-      } catch (error) {
-        console.error('Error fetching history:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchHistory();
-  }, [colmenaId, token]);
+function HistoryCard({ colmenaId, monitorings, harvestings }) {
+  // Filtramos los monitoreos y recolecciones que corresponden a esta colmena
+  const filteredMonitorings = monitorings.filter(mon => mon.hive_id === colmenaId);
+  const filteredHarvestings = harvestings.filter(harv => harv.hive_id === colmenaId);
 
   return (
     <div className="card rounded p-3 mx-2 mx-md-3 mt-3" style={{ border: '1px solid black', boxShadow: '0 15px 30px rgba(0,0,0,0.25)' }}>
       <h4 className="text-center mb-3">Historial de Colmena {colmenaId}</h4>
-      {loading ? (
-        <p className="text-center">Cargando historial...</p>
+      <h5>Monitoreos</h5>
+      {filteredMonitorings.length === 0 ? (
+        <p>No hay monitoreos registrados.</p>
       ) : (
-        <>
-          <h5>Monitoreos</h5>
-          {historyData.monitorings.length === 0 ? (
-            <p>No hay monitoreos registrados.</p>
-          ) : (
-            <ul>
-              {historyData.monitorings.map((mon, index) => (
-                <li key={index}>
-                  Fecha: {new Date(mon.date).toLocaleDateString()} - Observaciones: {mon.observations}
-                </li>
-              ))}
-            </ul>
-          )}
-          <h5>Recolecciones</h5>
-          {historyData.collections.length === 0 ? (
-            <p>No hay recolecciones registradas.</p>
-          ) : (
-            <ul>
-              {historyData.collections.map((col, index) => (
-                <li key={index}>
-                  Fecha: {new Date(col.date).toLocaleDateString()} - Cantidad: {col.quantity} kg
-                </li>
-              ))}
-            </ul>
-          )}
-        </>
+        <ul>
+          {filteredMonitorings.map((mon) => (
+            <li key={mon.id}>
+              Fecha: {new Date(mon.monitoring_date).toLocaleDateString()} - 
+              Observaciones reina: {mon.queen_observations} - 
+              Observaciones alimento: {mon.food_observations} - 
+              Observaciones generales: {mon.general_observations}
+            </li>
+          ))}
+        </ul>
+      )}
+      <h5>Recolecciones</h5>
+      {filteredHarvestings.length === 0 ? (
+        <p>No hay recolecciones registradas.</p>
+      ) : (
+        <ul>
+          {filteredHarvestings.map((harv) => (
+            <li key={harv.id}>
+              Fecha: {new Date(harv.harvest_date).toLocaleDateString()} - 
+              Producción de miel: {harv.honey_production} kg - 
+              Producción de polen: {harv.pollen_production} kg
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   );
@@ -79,7 +53,10 @@ function HistoryCard({ colmenaId, token }) {
 
 function Historial() {
   const [data, setData] = useState(null);
+  const [monitorings, setMonitorings] = useState([]);
+  const [harvestings, setHarvestings] = useState([]);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const imagenes = [imagen1, imagen2, imagen3];
 
@@ -98,22 +75,55 @@ function Historial() {
   const token = getCookie('token');
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchAllData = async () => {
       try {
-        const endpoint = role === 'admin'
+        setLoading(true);
+        
+        // Endpoint para las colmenas
+        const hivesEndpoint = role === 'admin'
           ? 'https://colmenaresdeleje.onrender.com/beehive/list-hives-admin/'
           : 'https://colmenaresdeleje.onrender.com/beehive/list-hives/';
-        const response = await fetch(endpoint, {
-          headers: { 'Authorization': `Bearer ${token}` },
-        });
-        if (!response.ok) throw new Error('Error en la respuesta del servidor');
-        const result = await response.json();
-        setData(result); // Sin filtrar por estado
+          
+        // Endpoints para monitoreos y recolecciones
+        const monitoringsEndpoint = 'https://colmenaresdeleje.onrender.com/monitoring/list-beehive-monitoring/';
+        const harvestingsEndpoint = 'https://colmenaresdeleje.onrender.com/harvesting/list-hive-harvesting/';
+        
+        // Realizar todas las peticiones en paralelo
+        const [hivesResponse, monitoringsResponse, harvestingsResponse] = await Promise.all([
+          fetch(hivesEndpoint, {
+            headers: { 'Authorization': `Bearer ${token}` },
+          }),
+          fetch(monitoringsEndpoint, {
+            headers: { 'Authorization': `Bearer ${token}` },
+          }),
+          fetch(harvestingsEndpoint, {
+            headers: { 'Authorization': `Bearer ${token}` },
+          })
+        ]);
+        
+        // Verificar si alguna respuesta falló
+        if (!hivesResponse.ok || !monitoringsResponse.ok || !harvestingsResponse.ok) {
+          throw new Error('Error en la respuesta del servidor');
+        }
+        
+        // Convertir las respuestas a JSON
+        const hivesData = await hivesResponse.json();
+        const monitoringsData = await monitoringsResponse.json();
+        const harvestingsData = await harvestingsResponse.json();
+        
+        // Actualizar el estado con los datos obtenidos
+        setData(hivesData);
+        setMonitorings(monitoringsData);
+        setHarvestings(harvestingsData);
       } catch (error) {
+        console.error('Error fetching data:', error);
         setError(error.message);
+      } finally {
+        setLoading(false);
       }
     };
-    fetchData();
+    
+    fetchAllData();
   }, [role, token]);
 
   const generatePDF = async () => {
@@ -149,34 +159,26 @@ function Historial() {
       doc.text(`Origen reina: ${colmena.origin}`, 10, yOffset);
       yOffset += 5;
       doc.text(`Observaciones: ${colmena.observations}`, 10, yOffset);
-      yOffset += 5;
-      doc.text(`Fecha de creación: ${new Date(colmena.registration_date).toISOString().split('T')[0]}`, 10, yOffset);
       yOffset += 10;
 
-      const monitoringResponse = await fetch(`https://colmenaresdeleje.onrender.com/beehive/monitoring/${colmena.id}/`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      const collectionResponse = await fetch(`https://colmenaresdeleje.onrender.com/beehive/collection/${colmena.id}/`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-
-      const monitorings = await monitoringResponse.json();
-      const collections = await collectionResponse.json();
+      // Filtrar monitoreos y recolecciones para esta colmena
+      const colmenaMonitorings = monitorings.filter(mon => mon.hive_id === colmena.id);
+      const colmenaHarvestings = harvestings.filter(harv => harv.hive_id === colmena.id);
 
       doc.text('Historial:', 10, yOffset);
       yOffset += 5;
 
       doc.text('Monitoreos:', 10, yOffset);
       yOffset += 5;
-      monitorings.forEach(mon => {
-        doc.text(`- ${new Date(mon.date).toLocaleDateString()}: ${mon.observations}`, 10, yOffset);
+      colmenaMonitorings.forEach(mon => {
+        doc.text(`- ${new Date(mon.monitoring_date).toLocaleDateString()}: ${mon.general_observations}`, 10, yOffset);
         yOffset += 5;
       });
 
       doc.text('Recolecciones:', 10, yOffset);
       yOffset += 5;
-      collections.forEach(col => {
-        doc.text(`- ${new Date(col.date).toLocaleDateString()}: ${col.quantity} kg`, 10, yOffset);
+      colmenaHarvestings.forEach(harv => {
+        doc.text(`- ${new Date(harv.harvest_date).toLocaleDateString()}: Miel: ${harv.honey_production} kg, Polen: ${harv.pollen_production} kg`, 10, yOffset);
         yOffset += 5;
       });
 
@@ -216,9 +218,9 @@ function Historial() {
             <div className="d-flex flex-column gap-3">
               {error ? (
                 <p className="text-danger text-center">Error: {error}</p>
-              ) : !data ? (
-                <p className="text-center">Cargando colmenas...</p>
-              ) : data.length === 0 ? (
+              ) : loading ? (
+                <p className="text-center">Cargando datos...</p>
+              ) : !data || data.length === 0 ? (
                 <p className="text-center">No hay colmenas registradas.</p>
               ) : (
                 data.map((colmena, index) => (
@@ -249,21 +251,31 @@ function Historial() {
                           <p className="mb-0 ms-0 ms-sm-3"><strong>Color reina:</strong> {colmena.queen_color}</p>
                           <p className="mb-0 ms-0 ms-sm-3"><strong>Origen reina:</strong> {colmena.origin}</p>
                           <p className="mb-0 ms-0 ms-sm-3"><strong>Observaciones:</strong> {colmena.observations}</p>
-                          <p className="mb-0 ms-0 ms-sm-3"><strong>Grados centígrados:</strong> {colmena.id_weather_conditions.temp_c}</p>
-                          <p className="mb-0 ms-0 ms-sm-3"><strong>Grados Fahrenheit:</strong> {colmena.id_weather_conditions.temp_f}</p>
-                          <p className="mb-0 ms-0 ms-sm-3"><strong>Condiciones:</strong> {colmena.id_weather_conditions.text}</p>
-                          <p className="mb-0 ms-0 ms-sm-3"><strong>Velocidad del viento:</strong> {colmena.id_weather_conditions.wind_kph} kph</p>
-                          <p className="mb-0 ms-0 ms-sm-3"><strong>Presión:</strong> {colmena.id_weather_conditions.pressure_mb} mb</p>
-                          <p className="mb-0 ms-0 ms-sm-3"><strong>Índices de humedad:</strong> {colmena.id_weather_conditions.humidity_indices}</p>
+                          {colmena.id_weather_conditions && (
+                            <>
+                              <p className="mb-0 ms-0 ms-sm-3"><strong>Grados centígrados:</strong> {colmena.id_weather_conditions.temp_c}</p>
+                              <p className="mb-0 ms-0 ms-sm-3"><strong>Grados Fahrenheit:</strong> {colmena.id_weather_conditions.temp_f}</p>
+                              <p className="mb-0 ms-0 ms-sm-3"><strong>Condiciones:</strong> {colmena.id_weather_conditions.text}</p>
+                              <p className="mb-0 ms-0 ms-sm-3"><strong>Velocidad del viento:</strong> {colmena.id_weather_conditions.wind_kph} kph</p>
+                              <p className="mb-0 ms-0 ms-sm-3"><strong>Presión:</strong> {colmena.id_weather_conditions.pressure_mb} mb</p>
+                              <p className="mb-0 ms-0 ms-sm-3"><strong>Índices de humedad:</strong> {colmena.id_weather_conditions.humidity_indices}</p>
+                            </>
+                          )}
                           <p className="mb-0 ms-0 ms-sm-3"><strong>Fecha de creación:</strong> {new Date(colmena.registration_date).toISOString().split('T')[0]}</p>
                         </div>
                       </div>
                     </div>
-                    <HistoryCard colmenaId={colmena.id} token={token} />
+                    <HistoryCard 
+                      colmenaId={colmena.id} 
+                      monitorings={monitorings} 
+                      harvestings={harvestings}
+                    />
                   </div>
                 ))
               )}
-              <button className="btn btn-primary mt-3 mx-auto d-block" onClick={generatePDF}>Generar PDF</button>
+              {!loading && data && data.length > 0 && (
+                <button className="btn btn-primary mt-3 mx-auto d-block" onClick={generatePDF}>Generar PDF</button>
+              )}
             </div>
           </div>
         </div>
