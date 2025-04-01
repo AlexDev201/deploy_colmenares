@@ -11,10 +11,16 @@ import imagen3 from 'src/img/images.jpeg';
 import jsPDF from 'jspdf';
 
 function HistoryCard({ colmenaId, monitorings, harvestings }) {
-  // Filtramos los monitoreos y recolecciones que corresponden a esta colmena
-  const filteredMonitorings = monitorings.filter(mon => mon.hive_id === colmenaId);
-  const filteredHarvestings = harvestings.filter(harv => harv.hive_id === colmenaId);
-
+  console.log('Colmena ID:', colmenaId);
+  console.log('Monitoreos disponibles:', monitorings);
+  console.log('Recolecciones disponibles:', harvestings);
+  
+  // Convierte los IDs a string para garantizar una comparación consistente
+  const filteredMonitorings = monitorings.filter(mon => String(mon.hive_id) === String(colmenaId));
+  const filteredHarvestings = harvestings.filter(harv => String(harv.hive_id) === String(colmenaId));
+  
+  console.log('Monitoreos filtrados:', filteredMonitorings);
+  console.log('Recolecciones filtradas:', filteredHarvestings);
   return (
     <div className="card rounded p-3 mx-2 mx-md-3 mt-3" style={{ border: '1px solid black', boxShadow: '0 15px 30px rgba(0,0,0,0.25)' }}>
       <h4 className="text-center mb-3">Historial de Colmena {colmenaId}</h4>
