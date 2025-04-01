@@ -9,6 +9,7 @@ import imagen1 from 'src/img/abejitas.jpeg';
 import imagen2 from 'src/img/imagen_ejemplo.jpg';
 import imagen3 from 'src/img/images.jpeg';
 import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 function HistoryCard({ colmenaId, monitorings, harvestings }) {
   const colmenaIdStr = String(colmenaId);
@@ -126,25 +127,47 @@ function Historial() {
   }, [role, token]);
 
   const generatePDF = async () => {
-    const doc = new jsPDF();
-    let yOffset = 10;
+    const element = contentRef.current;
+    if (!element) return;
 
-    doc.setFontSize(16);
-    doc.text('Reporte Completo de Colmenas', 10, yOffset);
-    yOffset += 10;
+    try {
+      // Capture the content using html2canvas
+      const canvas = await html2canvas(element, {
+        scale: 2, // Increase resolution
+        useCORS: true, // Enable CORS for images
+        logging: false,
+        scrollY: -window.scrollY, // Handle scrolling
+      });
 
-    data.forEach(colmena => {
-      doc.setFontSize(12);
-      doc.text(`Colmena ${colmena.id}`, 10, yOffset);
-      yOffset += 5;
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
 
-      doc.setFontSize(10);
-      doc.text(`Ubicación: ${colmena.location || 'N/A'}`, 10, yOffset);
-      yOffset += 5;
-      // ... resto del código de PDF
-    });
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgProps = pdf.getImageProperties(imgData);
+      const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      
+      // If content is taller than one page, add multiple pages
+      let heightLeft = imgHeight;
+      let position = 0;
 
-    doc.save('Reporte_Historial_Colmenas.pdf');
+      while (heightLeft >= 0) {
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+        heightLeft -= pdfHeight;
+        position -= pdfHeight;
+        if (heightLeft > 0) {
+          pdf.addPage();
+        }
+      }
+
+      pdf.save('Reporte_Historial_Colmenas.pdf');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+    }
   };
 
   const cardStyles = {
