@@ -139,13 +139,10 @@ function Historial() {
       doc.setFontSize(12);
       doc.text(`Colmena ${colmena.id}`, 10, yOffset);
       yOffset += 5;
-
       doc.setFontSize(10);
       doc.text(`Ubicación: ${colmena.location || 'N/A'}`, 10, yOffset);
       yOffset += 5;
-      doc.text(`Estado: ${colmena.status || 'N/A'}`, 10, yOffset);
-      yOffset += 5;
-      // ... resto del código de PDF
+      // ... resto del código de PDF (puedes restaurarlo del original)
     });
 
     doc.save('Reporte_Historial_Colmenas.pdf');
@@ -185,18 +182,16 @@ function Historial() {
                             src={imagenes[index % imagenes.length]}
                             alt="Imagen de la colmena"
                             className="img-fluid rounded"
-                            style={{ width: '100%', height: '150px', objectFit: 'cover', transition: 'transform 0.3s ease' }}
-                            onMouseOver={(e) => (e.target.style.transform = 'scale(1.05)')}
-                            onMouseOut={(e) => (e.target.style.transform = 'scale(1)')}
+                            style={{ width: '100%', height: '150px', objectFit: 'cover' }}
                           />
                         </div>
-                        <div className="col-12 col-sm-7 text-center text-sm-start mb-3 mb-sm-0">
+                        <div className="col-12 col-sm-7 text-center text-sm-start">
                           <h3 className="mb-1 ms-0 ms-sm-3">Numero de colmena: {colmena.id}</h3>
                           <p className="mb-0 ms-0 ms-sm-3">Ubicación: {colmena.location || 'N/A'}</p>
                           <p className="mb-0 ms-0 ms-sm-3">
                             <strong>Estado:</strong> <span className={`badge ${colmena.status === 'Active' ? 'bg-success' : 'bg-danger'}`}>{colmena.status === 'Active' ? 'Activa' : 'Inactiva'}</span>
                           </p>
-                          <p className="mb-0 ms-0 ms-sm-3"><strong>Apicultor asignado:</strong> {colmena.beekeeper_id?.first_name} {colmena.beekeeper_id?.last_name}</p>
+                          <p className="mb-0 ms-0 ms-sm-3"><strong>Apicultor asignado:</strong> {colmena.beekeeper_id?.first_name || 'N/A'} {colmena.beekeeper_id?.last_name || ''}</p>
                           <p className="mb-0 ms-0 ms-sm-3"><strong>Cuadros cría abierta:</strong> {colmena.open_brood_frames || 'N/A'}</p>
                           <p className="mb-0 ms-0 ms-sm-3"><strong>Cuadros cría operculada:</strong> {colmena.capped_brood_frames || 'N/A'}</p>
                           <p className="mb-0 ms-0 ms-sm-3"><strong>Cuadros de comida:</strong> {colmena.food_frames || 'N/A'}</p>
@@ -214,7 +209,7 @@ function Historial() {
                               <p className="mb-0 ms-0 ms-sm-3"><strong>Índices de humedad:</strong> {colmena.id_weather_conditions.humidity_indices || 'N/A'}</p>
                             </>
                           )}
-                          <p className="mb-0 ms-0 ms-sm-3"><strong>Fecha de creación:</strong> {new Date(colmena.registration_date).toISOString().split('T')[0] || 'N/A'}</p>
+                          <p className="mb-0 ms-0 ms-sm-3"><strong>Fecha de creación:</strong> {colmena.registration_date ? new Date(colmena.registration_date).toISOString().split('T')[0] : 'N/A'}</p>
                         </div>
                       </div>
                     </div>
