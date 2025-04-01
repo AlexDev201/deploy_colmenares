@@ -11,19 +11,16 @@ import imagen3 from 'src/img/images.jpeg';
 import jsPDF from 'jspdf';
 
 function HistoryCard({ colmenaId, monitorings, harvestings }) {
-  // Convertimos colmenaId a string para consistencia
   const colmenaIdStr = String(colmenaId);
 
-  // Filtros con depuración
   const filteredMonitorings = monitorings.filter(mon => {
-    const match = String(mon.hive_id) === colmenaIdStr;
-    console.log(`[HistoryCard] Comparando monitoreo hive_id: ${mon.hive_id} con colmenaId: ${colmenaId} -> ${match}`);
-    return match;
+    const hiveId = mon.hive_id?.id ?? mon.hive_id; // Usa hive_id.id si existe, sino hive_id directamente
+    return String(hiveId) === colmenaIdStr;
   });
+
   const filteredHarvestings = harvestings.filter(harv => {
-    const match = String(harv.hive_id) === colmenaIdStr;
-    console.log(`[HistoryCard] Comparando recolección hive_id: ${harv.hive_id} con colmenaId: ${colmenaId} -> ${match}`);
-    return match;
+    const hiveId = harv.hive_id?.id ?? harv.hive_id; // Usa hive_id.id si existe, sino hive_id directamente
+    return String(hiveId) === colmenaIdStr;
   });
 
   return (
@@ -61,7 +58,6 @@ function HistoryCard({ colmenaId, monitorings, harvestings }) {
     </div>
   );
 }
-
 function Historial() {
   const [data, setData] = useState([]);
   const [monitorings, setMonitorings] = useState([]);
