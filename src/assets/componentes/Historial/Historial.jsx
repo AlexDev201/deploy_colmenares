@@ -241,6 +241,12 @@ function Historial() {
       colmenaHistory.monitorings.forEach(mon => {
         doc.text(`- ${new Date(mon.date).toLocaleDateString()}: ${mon.observations || 'Sin observaciones'}`, 10, yOffset);
         yOffset += 5;
+        
+        // Si no queda espacio suficiente, añadimos una nueva página
+        if (yOffset > 280) {
+          doc.addPage();
+          yOffset = 10;
+        }
       });
 
       doc.text('Recolecciones:', 10, yOffset);
@@ -248,9 +254,19 @@ function Historial() {
       colmenaHistory.collections.forEach(col => {
         doc.text(`- ${new Date(col.date).toLocaleDateString()}: ${col.quantity} kg`, 10, yOffset);
         yOffset += 5;
+        
+        // Si no queda espacio suficiente, añadimos una nueva página
+        if (yOffset > 280) {
+          doc.addPage();
+          yOffset = 10;
+        }
       });
 
-      if (yOffset > 280) {
+      // Añadimos espacio entre colmenas
+      yOffset += 10;
+      
+      // Si no queda espacio suficiente para la siguiente colmena, añadimos una nueva página
+      if (yOffset > 260) {
         doc.addPage();
         yOffset = 10;
       }
@@ -269,12 +285,20 @@ function Historial() {
     },
   };
 
-  const styleElement = document.createElement('style');
-  styleElement.textContent = `
-    .bee-card:hover { box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important; transform: translateY(-5px) !important; }
-    @media (max-width: 576px) { .bee-card .row { flex-direction: column; align-items: stretch; } .bee-card img { max-height: 150px; margin: 0 auto; } .bee-card .col-sm-7 { text-align: center; margin-top: 10px; } }
-  `;
-  document.head.appendChild(styleElement);
+  // Añadimos estilos globales una sola vez al montar el componente
+  useEffect(() => {
+    const styleElement = document.createElement('style');
+    styleElement.textContent = `
+      .bee-card:hover { box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important; transform: translateY(-5px) !important; }
+      @media (max-width: 576px) { .bee-card .row { flex-direction: column; align-items: stretch; } .bee-card img { max-height: 150px; margin: 0 auto; } .bee-card .col-sm-7 { text-align: center; margin-top: 10px; } }
+    `;
+    document.head.appendChild(styleElement);
+    
+    // Limpieza al desmontar el componente
+    return () => {
+      document.head.removeChild(styleElement);
+    };
+  }, []);
 
   return (
     <div className="d-flex flex-column min-vh-100">
@@ -326,12 +350,16 @@ function Historial() {
                           <p className="mb-0 ms-0 ms-sm-3"><strong>Color reina:</strong> {colmena.queen_color}</p>
                           <p className="mb-0 ms-0 ms-sm-3"><strong>Origen reina:</strong> {colmena.origin}</p>
                           <p className="mb-0 ms-0 ms-sm-3"><strong>Observaciones:</strong> {colmena.observations}</p>
-                          <p className="mb-0 ms-0 ms-sm-3"><strong>Grados centígrados:</strong> {colmena.id_weather_conditions?.temp_c}</p>
-                          <p className="mb-0 ms-0 ms-sm-3"><strong>Grados Fahrenheit:</strong> {colmena.id_weather_conditions?.temp_f}</p>
-                          <p className="mb-0 ms-0 ms-sm-3"><strong>Condiciones:</strong> {colmena.id_weather_conditions?.text}</p>
-                          <p className="mb-0 ms-0 ms-sm-3"><strong>Velocidad del viento:</strong> {colmena.id_weather_conditions?.wind_kph} kph</p>
-                          <p className="mb-0 ms-0 ms-sm-3"><strong>Presión:</strong> {colmena.id_weather_conditions?.pressure_mb} mb</p>
-                          <p className="mb-0 ms-0 ms-sm-3"><strong>Índices de humedad:</strong> {colmena.id_weather_conditions?.humidity_indices}</p>
+                          {colmena.id_weather_conditions && (
+                            <>
+                              <p className="mb-0 ms-0 ms-sm-3"><strong>Grados centígrados:</strong> {colmena.id_weather_conditions.temp_c}</p>
+                              <p className="mb-0 ms-0 ms-sm-3"><strong>Grados Fahrenheit:</strong> {colmena.id_weather_conditions.temp_f}</p>
+                              <p className="mb-0 ms-0 ms-sm-3"><strong>Condiciones:</strong> {colmena.id_weather_conditions.text}</p>
+                              <p className="mb-0 ms-0 ms-sm-3"><strong>Velocidad del viento:</strong> {colmena.id_weather_conditions.wind_kph} kph</p>
+                              <p className="mb-0 ms-0 ms-sm-3"><strong>Presión:</strong> {colmena.id_weather_conditions.pressure_mb} mb</p>
+                              <p className="mb-0 ms-0 ms-sm-3"><strong>Índices de humedad:</strong> {colmena.id_weather_conditions.humidity_indices}</p>
+                            </>
+                          )}
                           <p className="mb-0 ms-0 ms-sm-3"><strong>Fecha de creación:</strong> {new Date(colmena.registration_date).toISOString().split('T')[0]}</p>
                         </div>
                       </div>
