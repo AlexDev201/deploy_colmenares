@@ -127,37 +127,36 @@ function Historial() {
   const generatePDF = async () => {
     const element = contentRef.current;
     if (!element) return;
-
+  
     try {
-      // Añadir margen al PDF
       const margin = 10;
       const pdf = new jsPDF('p', 'mm', 'a4');
       const options = {
-        scale: 2,
+        scale: 1, // Reducido de 2 a 1
         useCORS: true,
         logging: false,
-        scrollY: -window.scrollY,
       };
-
-      const canvas = await html2canvas(element, options);
-      const imgData = canvas.toDataURL('image/png');
+  
+      // Clonar el elemento para no afectar el DOM original
+      const clonedElement = element.cloneNode(true);
+      document.body.appendChild(clonedElement);
+      clonedElement.style.width = '210mm'; // Ancho A4
+  
+      // Capturar por secciones
+      const sections = clonedElement.querySelectorAll('.card'); // Cada tarjeta individual
       
-      const pdfWidth = pdf.internal.pageSize.getWidth() - 2 * margin;
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      
-      let heightLeft = pdfHeight;
-      let position = margin;
-      
-      pdf.addImage(imgData, 'PNG', margin, position, pdfWidth, pdfHeight);
-      heightLeft -= pdf.internal.pageSize.getHeight();
-      
-      while (heightLeft >= 0) {
-        position = heightLeft - pdfHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', margin, position, pdfWidth, pdfHeight);
-        heightLeft -= pdf.internal.pageSize.getHeight();
+      for (let i = 0; i < sections.length; i++) {
+        const canvas = await html2canvas(sections[i], options);
+        const imgData = canvas.toDataURL('image/jpeg', 0.7); // JPEG con 70% calidad
+        
+        const pdfWidth = pdf.internal.pageSize.getWidth() - 2 * margin;
+        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+        
+        if (i !== 0) pdf.addPage();
+        pdf.addImage(imgData, 'JPEG', margin, margin, pdfWidth, pdfHeight);
       }
-
+  
+      document.body.removeChild(clonedElement);
       pdf.save('Reporte_Historial_Colmenas.pdf');
     } catch (error) {
       console.error('Error generating PDF:', error);
