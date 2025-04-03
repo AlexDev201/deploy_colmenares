@@ -193,15 +193,19 @@ function Historial() {
                   <div key={colmena.id}>
                     <div className="card rounded p-3 mx-2 mx-md-3 bee-card" style={cardStyles.hiveCard}>
                       <div className="row g-0 align-items-center">
-                      <div className="col-12 col-sm-3 mb-3 mb-sm-0 d-flex justify-content-center">
-
+                      <div className="col-12 col-sm-4 mb-3 mb-sm-0 d-flex justify-content-center">
                         <img
                           src={imagenes[index % imagenes.length]}
                           alt="Imagen de la colmena"
                           className="img-fluid rounded"
-                          style={{ width: '120px', height: '120px', objectFit: 'cover' }}
+                          style={{ 
+                            width: '200px', 
+                            height: '150px', 
+                            objectFit: 'cover',
+                            maxWidth: '100%' 
+                          }}
                         />
-                        </div>
+                      </div>
                         <div className="col-12 col-sm-7 text-center text-sm-start">
                           <h3 className="mb-1 ms-0 ms-sm-3">Numero de colmena: {colmena.id}</h3>
                           <p className="mb-0 ms-0 ms-sm-3">Ubicación: {colmena.location || 'N/A'}</p>
