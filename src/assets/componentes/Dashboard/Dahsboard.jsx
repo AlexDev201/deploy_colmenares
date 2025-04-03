@@ -445,12 +445,14 @@ function Dashboard() {
                 ))
               )}
             </div>
-            <button
-              className="btn btn-primary mt-3 mx-auto d-block"
-              onClick={() => navigate('/Historial')}
-            >
-              Ver Historial Completo
-            </button>
+            {role === 'admin' && (
+              <button
+                className="btn btn-primary mt-3 mx-auto d-block"
+                onClick={() => navigate('/Historial')}
+              >
+                Ver Historial Completo
+              </button>
+            )}
           </div>
 
           <div className="col-12 col-lg-4 col-xl-3">
