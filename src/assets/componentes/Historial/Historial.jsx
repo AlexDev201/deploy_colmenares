@@ -249,7 +249,7 @@ function Historial() {
       {!loading && data.length > 0 && (
         <div className="text-center mb-4">
           <button 
-            className="btn btn-primary" 
+            className="btn btn-warning" 
             onClick={generatePDF}
             style={{ padding: '10px 20px', fontSize: '1.1rem' }}
           >
