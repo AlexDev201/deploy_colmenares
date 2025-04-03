@@ -271,7 +271,8 @@ function Edit_Monitoreo() {
                 queen_observations: formData.queen_observations,
                 food_observations: formData.food_observations,
                 general_observations: formData.general_observations,
-                hive_id: formData.hive_id,
+                hive_id: typeof formData.hive_id === 'object' ? formData.hive_id.id : parseInt(formData.hive_id),
+
                 beekeeper: parseInt(beekeeperId)
             };
 
