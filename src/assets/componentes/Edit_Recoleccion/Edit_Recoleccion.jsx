@@ -396,7 +396,7 @@ function Edit_Recoleccion() {
                 harvest_date: edit_harvesting_date,
                 honey_production: parseFloat(formData.honey_production),
                 pollen_production: parseFloat(formData.pollen_production),
-                hive_id: formData.hive_id,
+                hive_id: typeof formData.hive_id === 'object' ? formData.hive_id.id : parseInt(formData.hive_id),
                 beekeeper: parseInt(beekeeperId)
             };
 
