@@ -25,42 +25,37 @@ function HistoryCard({ colmenaId, monitorings, harvestings }) {
   });
 
   return (
-    <div className="card rounded p-3 mx-2 mx-md-3 mt-3" style={{ border: '1px solid #ddd', boxShadow: '0 5px 15px rgba(0,0,0,0.15)', maxWidth: '800px', margin: '0 auto' }}>
-      <h5 className="text-center mb-2">Historial de Colmena {colmenaId}</h5>
-      <div className="row">
-        <div className="col-md-6">
-          <h6 className="mb-2">Monitoreos</h6>
-          {filteredMonitorings.length === 0 ? (
-            <p className="small">No hay monitoreos registrados.</p>
-          ) : (
-            <div className="small">
-              {filteredMonitorings.map((mon) => (
-                <div key={mon.id} className="mb-2 p-2 border-bottom">
-                  <strong>Fecha:</strong> {new Date(mon.monitoring_date).toLocaleDateString()}<br/>
-                  <strong>Reina:</strong> {mon.queen_observations || 'N/A'}<br/>
-                  <strong>Alimento:</strong> {mon.food_observations || 'N/A'}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-        <div className="col-md-6">
-          <h6 className="mb-2">Recolecciones</h6>
-          {filteredHarvestings.length === 0 ? (
-            <p className="small">No hay recolecciones registradas.</p>
-          ) : (
-            <div className="small">
-              {filteredHarvestings.map((harv) => (
-                <div key={harv.id} className="mb-2 p-2 border-bottom">
-                  <strong>Fecha:</strong> {new Date(harv.harvest_date).toLocaleDateString()}<br/>
-                  <strong>Miel:</strong> {harv.honey_production || 0} kg<br/>
-                  <strong>Polen:</strong> {harv.pollen_production || 0} kg
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+    <div className="card rounded p-3 mx-2 mx-md-3 mt-3" style={{ border: '1px solid black', boxShadow: '0 15px 30px rgba(0,0,0,0.25)' }}>
+      <h4 className="text-center mb-3">Historial de Colmena {colmenaId}</h4>
+      <h5>Monitoreos</h5>
+      {filteredMonitorings.length === 0 ? (
+        <p>No hay monitoreos registrados para esta colmena.</p>
+      ) : (
+        <ul>
+          {filteredMonitorings.map((mon) => (
+            <li key={mon.id}>
+              Fecha: {new Date(mon.monitoring_date).toLocaleDateString()} - 
+              Observaciones reina: {mon.queen_observations || 'N/A'} - 
+              Observaciones alimento: {mon.food_observations || 'N/A'} - 
+              Observaciones generales: {mon.general_observations || 'N/A'}
+            </li>
+          ))}
+        </ul>
+      )}
+      <h5>Recolecciones</h5>
+      {filteredHarvestings.length === 0 ? (
+        <p>No hay recolecciones registradas para esta colmena.</p>
+      ) : (
+        <ul>
+          {filteredHarvestings.map((harv) => (
+            <li key={harv.id}>
+              Fecha: {new Date(harv.harvest_date).toLocaleDateString()} - 
+              Producción de miel: {harv.honey_production || 0} kg - 
+              Producción de polen: {harv.pollen_production || 0} kg
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
@@ -73,7 +68,7 @@ function Historial() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const imagenes = [imagen1, imagen2, imagen3];
-  const contentRef = useRef(null);
+  const contentRef = useRef(null); // Referencia para el contenido a convertir a PDF
 
   function getCookie(name) {
     const nameEQ = name + "=";
@@ -90,7 +85,6 @@ function Historial() {
   const token = getCookie('token');
 
   useEffect(() => {
-    // La lógica de useEffect se mantiene igual
     const fetchAllData = async () => {
       try {
         setLoading(true);
@@ -131,7 +125,6 @@ function Historial() {
   }, [role, token]);
 
   const generatePDF = async () => {
-    // La lógica de generatePDF se mantiene igual
     const element = contentRef.current;
     if (!element) return;
   
@@ -139,20 +132,22 @@ function Historial() {
       const margin = 10;
       const pdf = new jsPDF('p', 'mm', 'a4');
       const options = {
-        scale: 1,
+        scale: 1, // Reducido de 2 a 1
         useCORS: true,
         logging: false,
       };
   
+      // Clonar el elemento para no afectar el DOM original
       const clonedElement = element.cloneNode(true);
       document.body.appendChild(clonedElement);
-      clonedElement.style.width = '210mm';
+      clonedElement.style.width = '210mm'; // Ancho A4
   
-      const sections = clonedElement.querySelectorAll('.card');
+      // Capturar por secciones
+      const sections = clonedElement.querySelectorAll('.card'); // Cada tarjeta individual
       
       for (let i = 0; i < sections.length; i++) {
         const canvas = await html2canvas(sections[i], options);
-        const imgData = canvas.toDataURL('image/jpeg', 0.7);
+        const imgData = canvas.toDataURL('image/jpeg', 0.7); // JPEG con 70% calidad
         
         const pdfWidth = pdf.internal.pageSize.getWidth() - 2 * margin;
         const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
@@ -169,13 +164,23 @@ function Historial() {
     }
   };
 
+  const cardStyles = {
+    hiveCard: {
+      transition: 'all 0.3s ease',
+      transform: 'translateZ(0)',
+      cursor: 'pointer',
+      border: '1px solid black',
+      boxShadow: '0 15px 30px rgba(0,0,0,0.25)',
+    },
+  };
+
   return (
     <div className="d-flex flex-column min-vh-100">
       {role === 'admin' ? <Admin_Nav_Bar /> : <NavBar />}
       <div className="container-fluid flex-grow-1 py-3" ref={contentRef}>
         <div className="row justify-content-center">
-          <div className="col-12 col-lg-8 mb-4">
-            <h3 className="text-center mb-3">Historial Completo de Colmenas</h3>
+          <div className="col-12 col-lg-10 mb-4">
+            <h2 className="text-center mb-4">Historial Completo de Colmenas</h2>
             <div className="d-flex flex-column gap-3">
               {error ? (
                 <p className="text-danger text-center">Error: {error}</p>
@@ -186,37 +191,42 @@ function Historial() {
               ) : (
                 data.map((colmena, index) => (
                   <div key={colmena.id}>
-                    <div className="card rounded p-3 mx-auto bee-card" style={{ border: '1px solid #ddd', boxShadow: '0 5px 15px rgba(0,0,0,0.15)', maxWidth: '800px' }}>
+                    <div className="card rounded p-3 mx-2 mx-md-3 bee-card" style={cardStyles.hiveCard}>
                       <div className="row g-0 align-items-center">
-                        <div className="col-12 col-md-3 mb-3 mb-md-0">
-                          <img
-                            src={imagenes[index % imagenes.length]}
-                            alt="Imagen de la colmena"
-                            className="img-fluid rounded"
-                            style={{ width: '100%', height: '120px', objectFit: 'cover' }}
-                          />
+                      <div className="col-12 col-sm-3 mb-3 mb-sm-0 d-flex justify-content-center">
+
+                        <img
+                          src={imagenes[index % imagenes.length]}
+                          alt="Imagen de la colmena"
+                          className="img-fluid rounded"
+                          style={{ width: '120px', height: '120px', objectFit: 'cover' }}
+                        />
                         </div>
-                        <div className="col-12 col-md-9">
-                          <div className="row">
-                            <div className="col-md-6">
-                              <h5 className="mb-1">Colmena #{colmena.id}</h5>
-                              <p className="mb-1 small"><strong>Ubicación:</strong> {colmena.location || 'N/A'}</p>
-                              <p className="mb-1 small">
-                                <strong>Estado:</strong> <span className={`badge ${colmena.status === 'Active' ? 'bg-success' : 'bg-danger'}`}>{colmena.status === 'Active' ? 'Activa' : 'Inactiva'}</span>
-                              </p>
-                              <p className="mb-1 small"><strong>Apicultor:</strong> {colmena.beekeeper_id?.first_name || 'N/A'} {colmena.beekeeper_id?.last_name || ''}</p>
-                              <p className="mb-1 small"><strong>Fecha registro:</strong> {colmena.registration_date ? new Date(colmena.registration_date).toISOString().split('T')[0] : 'N/A'}</p>
-                            </div>
-                            <div className="col-md-6">
-                              <p className="mb-1 small"><strong>Cuadros cría abierta:</strong> {colmena.open_brood_frames || 'N/A'}</p>
-                              <p className="mb-1 small"><strong>Cuadros cría operculada:</strong> {colmena.capped_brood_frames || 'N/A'}</p>
-                              <p className="mb-1 small"><strong>Cuadros comida:</strong> {colmena.food_frames || 'N/A'}</p>
-                              <p className="mb-1 small"><strong>Reina:</strong> {colmena.queen_presence ? 'Presente' : 'Ausente'} | <strong>Color:</strong> {colmena.queen_color || 'N/A'}</p>
-                            </div>
-                          </div>
-                          {colmena.observations && (
-                            <p className="mb-0 small text-muted"><strong>Observaciones:</strong> {colmena.observations}</p>
+                        <div className="col-12 col-sm-7 text-center text-sm-start">
+                          <h3 className="mb-1 ms-0 ms-sm-3">Numero de colmena: {colmena.id}</h3>
+                          <p className="mb-0 ms-0 ms-sm-3">Ubicación: {colmena.location || 'N/A'}</p>
+                          <p className="mb-0 ms-0 ms-sm-3">
+                            <strong>Estado:</strong> <span className={`badge ${colmena.status === 'Active' ? 'bg-success' : 'bg-danger'}`}>{colmena.status === 'Active' ? 'Activa' : 'Inactiva'}</span>
+                          </p>
+                          <p className="mb-0 ms-0 ms-sm-3"><strong>Apicultor asignado:</strong> {colmena.beekeeper_id?.first_name || 'N/A'} {colmena.beekeeper_id?.last_name || ''}</p>
+                          <p className="mb-0 ms-0 ms-sm-3"><strong>Cuadros cría abierta:</strong> {colmena.open_brood_frames || 'N/A'}</p>
+                          <p className="mb-0 ms-0 ms-sm-3"><strong>Cuadros cría operculada:</strong> {colmena.capped_brood_frames || 'N/A'}</p>
+                          <p className="mb-0 ms-0 ms-sm-3"><strong>Cuadros de comida:</strong> {colmena.food_frames || 'N/A'}</p>
+                          <p className="mb-0 ms-0 ms-sm-3"><strong>Presencia reina:</strong> {colmena.queen_presence ? 'Sí' : 'No'}</p>
+                          <p className="mb-0 ms-0 ms-sm-3"><strong>Color reina:</strong> {colmena.queen_color || 'N/A'}</p>
+                          <p className="mb-0 ms-0 ms-sm-3"><strong>Origen reina:</strong> {colmena.origin || 'N/A'}</p>
+                          <p className="mb-0 ms-0 ms-sm-3"><strong>Observaciones:</strong> {colmena.observations || 'N/A'}</p>
+                          {colmena.id_weather_conditions && (
+                            <>
+                              <p className="mb-0 ms-0 ms-sm-3"><strong>Grados centígrados:</strong> {colmena.id_weather_conditions.temp_c || 'N/A'}</p>
+                              <p className="mb-0 ms-0 ms-sm-3"><strong>Grados Fahrenheit:</strong> {colmena.id_weather_conditions.temp_f || 'N/A'}</p>
+                              <p className="mb-0 ms-0 ms-sm-3"><strong>Condiciones:</strong> {colmena.id_weather_conditions.text || 'N/A'}</p>
+                              <p className="mb-0 ms-0 ms-sm-3"><strong>Velocidad del viento:</strong> {colmena.id_weather_conditions.wind_kph || 'N/A'} kph</p>
+                              <p className="mb-0 ms-0 ms-sm-3"><strong>Presión:</strong> {colmena.id_weather_conditions.pressure_mb || 'N/A'} mb</p>
+                              <p className="mb-0 ms-0 ms-sm-3"><strong>Índices de humedad:</strong> {colmena.id_weather_conditions.humidity_indices || 'N/A'}</p>
+                            </>
                           )}
+                          <p className="mb-0 ms-0 ms-sm-3"><strong>Fecha de creación:</strong> {colmena.registration_date ? new Date(colmena.registration_date).toISOString().split('T')[0] : 'N/A'}</p>
                         </div>
                       </div>
                     </div>
@@ -237,6 +247,7 @@ function Historial() {
           <button 
             className="btn btn-primary" 
             onClick={generatePDF}
+            style={{ padding: '10px 20px', fontSize: '1.1rem' }}
           >
             Generar PDF del Historial
           </button>
