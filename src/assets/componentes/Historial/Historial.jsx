@@ -199,8 +199,8 @@ function Historial() {
                           alt="Imagen de la colmena"
                           className="img-fluid rounded"
                           style={{ 
-                            width: '200px', 
-                            height: '150px', 
+                            width: '300px', 
+                            height: '250px', 
                             objectFit: 'cover',
                             maxWidth: '100%' 
                           }}
