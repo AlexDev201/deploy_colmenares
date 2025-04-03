@@ -7,6 +7,8 @@ import Footer from '../Single_Components/Footer';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Admin_Regress_Button from '../Single_Components/Admin_Regress_Button';
 import BackArrowButton from '../Single_Components/BackButton';
+import { useNavigate } from 'react-router-dom';
+
 const breakpoints = {
     mobile: '480px',
     tablet: '768px',
@@ -390,6 +392,7 @@ const AlertPopup = Styled.div`
 
 function UserRegister() {
     const formRef = useRef(null);
+    const navigate= useNavigate;
     const TodayDate = new Date();
     const assignedDate = TodayDate.toISOString().split('T')[0];
     const [showPopup, setShowPopup] = useState(false);
@@ -604,6 +607,7 @@ function UserRegister() {
             }
             
             setShowPopup(true);
+
             setFormDataRegister({
                 username: '',
                 nombreApicultor: '',
@@ -623,6 +627,12 @@ function UserRegister() {
             setErrorPopupMessage(`Error: ${error.message}`);
             setShowErrorPopup(true);
         }
+    };
+
+
+    const closePopup = () => {
+        setShowPopup(false);
+        navigate('/ViewApicultor'); 
     };
 
     return (
@@ -833,7 +843,8 @@ function UserRegister() {
                     <ErrorIcon />
                     <PopupTitle>Error en el Registro</PopupTitle>
                     <p>{errorPopupMessage}</p>
-                    <PopupButton onClick={() => setShowErrorPopup(false)}>Aceptar</PopupButton>
+                    <PopupButton onClick={closePopup}>Aceptar</PopupButton>
+
                 </PopupContent>
             </PopupOverlay>
 

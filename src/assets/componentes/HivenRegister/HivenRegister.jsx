@@ -7,6 +7,7 @@ import Footer from '../Single_Components/Footer';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Regress_Button from '../Single_Components/Regress_Button';
 import BackArrowButton from '../Single_Components/BackButton';
+import { useNavigate } from 'react-router-dom';
 
 // Sistema de breakpoints
 const breakpoints = {
@@ -374,6 +375,7 @@ function HivenRegister() {
     const [error, setError] = useState(null);
     const [mostrarClima, setMostrarClima] = useState(false);
     const [mostrarPreguntaClima, setMostrarPreguntaClima] = useState(true);
+    const navigate= useNavigate();
 
     function getCookie(name) {
         const nameEQ = name + "=";
@@ -618,6 +620,15 @@ function HivenRegister() {
         }
     };
 
+
+    const closePopup = () => {
+        setShowPopup(false);
+        navigate('/Dashboard'); 
+    };
+    
+    
+
+
     return (
         <Wrapper>
             {role === 'admin' ? <Admin_Nav_Bar /> : <NavBar />}
@@ -817,7 +828,8 @@ function HivenRegister() {
                     <SuccessIcon />
                     <PopupTitle>Registro Exitoso</PopupTitle>
                     <p>La colmena ha sido creada exitosamente</p>
-                    <PopupButton onClick={() => setShowPopup(false)}>Aceptar</PopupButton>
+                    <PopupButton onClick={closePopup}>Aceptar</PopupButton>
+
                 </PopupContent>
             </PopupOverlay>
         </Wrapper>
