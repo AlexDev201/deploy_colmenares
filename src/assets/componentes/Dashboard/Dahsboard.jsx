@@ -447,7 +447,7 @@ function Dashboard() {
             </div>
             {role === 'admin' && (
               <button
-                className="btn btn-primary mt-3 mx-auto d-block"
+                className="btn btn-warning mt-3 mx-auto d-block"
                 onClick={() => navigate('/Historial')}
               >
                 Ver Historial Completo
