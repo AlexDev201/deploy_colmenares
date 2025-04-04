@@ -214,63 +214,60 @@ function Historial() {
               ) : (
                 data.map((colmena, index) => (
                   <div key={colmena.id}>
-                    <div className="card rounded p-3 mx-2 mx-md-3 bee-card" style={cardStyles.hiveCard}>
-                      <div className="row g-0 align-items-center">
-                        <div className="col-12 col-md-4 mb-3 mb-md-0 d-flex justify-content-center">
-                          <img
-                            src={imagenes[index % imagenes.length]}
-                            alt="Imagen de la colmena"
-                            className="img-fluid rounded"
-                            style={{ 
-                              width: '300px', 
-                              height: '250px', 
-                              objectFit: 'cover',
-                              maxWidth: '100%' 
-                            }}
-                          />
-                        </div>
-                        <div className="col-12 col-md-8">
-                          <h3 className="mb-3 text-center text-md-start">Numero de colmena: {colmena.id}</h3>
-                          <div className="row">
-                            <div className="col-12 col-sm-6 mb-2">
-                              <p className="mb-1"><strong>Ubicación:</strong> {colmena.location || 'N/A'}</p>
-                              <p className="mb-1">
-                                <strong>Estado:</strong> <span className={`badge ${colmena.status === 'Active' ? 'bg-success' : 'bg-danger'}`}>{colmena.status === 'Active' ? 'Activa' : 'Inactiva'}</span>
-                              </p>
-                              <p className="mb-1"><strong>Apicultor:</strong> {colmena.beekeeper_id?.first_name || 'N/A'} {colmena.beekeeper_id?.last_name || ''}</p>
-                              <p className="mb-1"><strong>Cuadros cría abierta:</strong> {colmena.open_brood_frames || 'N/A'}</p>
-                              <p className="mb-1"><strong>Cuadros cría operculada:</strong> {colmena.capped_brood_frames || 'N/A'}</p>
-                              <p className="mb-1"><strong>Cuadros de comida:</strong> {colmena.food_frames || 'N/A'}</p>
-                            </div>
-                            <div className="col-12 col-sm-6 mb-2">
-                              <p className="mb-1"><strong>Presencia reina:</strong> {colmena.queen_presence ? 'Sí' : 'No'}</p>
-                              <p className="mb-1"><strong>Color reina:</strong> {colmena.queen_color || 'N/A'}</p>
-                              <p className="mb-1"><strong>Origen reina:</strong> {colmena.origin || 'N/A'}</p>
-                              <p className="mb-1"><strong>Observaciones:</strong> {colmena.observations || 'N/A'}</p>
-                              <p className="mb-1"><strong>Fecha de creación:</strong> {colmena.registration_date ? new Date(colmena.registration_date).toISOString().split('T')[0] : 'N/A'}</p>
+                        <div className="card rounded p-3 mx-2 mx-md-3 bee-card" style={cardStyles.hiveCard}>
+                        <div className="row g-0 align-items-center">
+                          <div className="col-12 col-md-4 mb-3 mb-md-0 d-flex justify-content-center">
+                            <img
+                              src={imagenes[index % imagenes.length]}
+                              alt="Imagen de la colmena"
+                              className="img-fluid rounded"
+                              style={{ 
+                                width: '300px', 
+                                height: '250px', 
+                                objectFit: 'cover',
+                                maxWidth: '100%' 
+                              }}
+                            />
+                          </div>
+                          <div className="col-12 col-md-4">
+                            <h3 className="mb-3 text-center">Colmena #{colmena.id}</h3>
+                            <div className="row">
+                              <div className="col-12">
+                                <p className="mb-1"><strong>Ubicación:</strong> {colmena.location || 'N/A'}</p>
+                                <p className="mb-1">
+                                  <strong>Estado:</strong> <span className={`badge ${colmena.status === 'Active' ? 'bg-success' : 'bg-danger'}`}>
+                                    {colmena.status === 'Active' ? 'Activa' : 'Inactiva'}
+                                  </span>
+                                </p>
+                                <p className="mb-1"><strong>Apicultor:</strong> {colmena.beekeeper_id?.first_name || 'N/A'} {colmena.beekeeper_id?.last_name || ''}</p>
+                                <p className="mb-1"><strong>Cuadros cría abierta:</strong> {colmena.open_brood_frames || 'N/A'}</p>
+                                <p className="mb-1"><strong>Cuadros cría operculada:</strong> {colmena.capped_brood_frames || 'N/A'}</p>
+                                <p className="mb-1"><strong>Cuadros de comida:</strong> {colmena.food_frames || 'N/A'}</p>
+                                <p className="mb-1"><strong>Presencia reina:</strong> {colmena.queen_presence ? 'Sí' : 'No'}</p>
+                                <p className="mb-1"><strong>Color reina:</strong> {colmena.queen_color || 'N/A'}</p>
+                                <p className="mb-1"><strong>Origen reina:</strong> {colmena.origin || 'N/A'}</p>
+                                <p className="mb-1"><strong>Observaciones:</strong> {colmena.observations || 'N/A'}</p>
+                                <p className="mb-1"><strong>Fecha de creación:</strong> {colmena.registration_date ? new Date(colmena.registration_date).toISOString().split('T')[0] : 'N/A'}</p>
+                              </div>
                             </div>
                           </div>
                           {colmena.id_weather_conditions && (
-                            <div className="row mt-2">
-                              <div className="col-12">
-                                <h5 className="mb-2">Condiciones climáticas:</h5>
-                                <div className="row">
-                                  <div className="col-12 col-sm-6">
-                                    <p className="mb-1"><strong>Temperatura:</strong> {colmena.id_weather_conditions.temp_c || 'N/A'}°C / {colmena.id_weather_conditions.temp_f || 'N/A'}°F</p>
-                                    <p className="mb-1"><strong>Condiciones:</strong> {colmena.id_weather_conditions.text || 'N/A'}</p>
-                                  </div>
-                                  <div className="col-12 col-sm-6">
-                                    <p className="mb-1"><strong>Viento:</strong> {colmena.id_weather_conditions.wind_kph || 'N/A'} kph</p>
-                                    <p className="mb-1"><strong>Presión:</strong> {colmena.id_weather_conditions.pressure_mb || 'N/A'} mb</p>
-                                    <p className="mb-1"><strong>Humedad:</strong> {colmena.id_weather_conditions.humidity_indices || 'N/A'}</p>
-                                  </div>
+                            <div className="col-12 col-md-4">
+                              <h3 className="mb-3 text-center">Condiciones Climáticas</h3>
+                              <div className="row">
+                                <div className="col-12">
+                                  <p className="mb-1"><strong>Temperatura:</strong> {colmena.id_weather_conditions.temp_c || 'N/A'}°C / {colmena.id_weather_conditions.temp_f || 'N/A'}°F</p>
+                                  <p className="mb-1"><strong>Condiciones:</strong> {colmena.id_weather_conditions.text || 'N/A'}</p>
+                                  <p className="mb-1"><strong>Viento:</strong> {colmena.id_weather_conditions.wind_kph || 'N/A'} kph</p>
+                                  <p className="mb-1"><strong>Dirección viento:</strong> {colmena.id_weather_conditions.wind_dir || 'N/A'}</p>
+                                  <p className="mb-1"><strong>Presión:</strong> {colmena.id_weather_conditions.pressure_mb || 'N/A'} mb</p>
+                                  <p className="mb-1"><strong>Humedad:</strong> {colmena.id_weather_conditions.humidity_indices || 'N/A'}%</p>
                                 </div>
                               </div>
                             </div>
                           )}
                         </div>
                       </div>
-                    </div>
                     <HistoryCard 
                       colmenaId={colmena.id} 
                       monitorings={monitorings} 
@@ -300,3 +297,5 @@ function Historial() {
 }
 
 export default Historial;
+
+
