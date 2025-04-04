@@ -230,7 +230,7 @@ function Historial() {
                             />
                           </div>
                           <div className="col-12 col-md-4">
-                            <h3 className="mb-3 text-center">Colmena {colmena.id}</h3>
+                            <h2 className="mb-3 text-center">Colmena {colmena.id}</h2>
                             <div className="row">
                               <div className="col-12">
                                 <p className="mb-1"><strong>Ubicación:</strong> {colmena.location || 'N/A'}</p>
