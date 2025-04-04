@@ -392,7 +392,7 @@ const AlertPopup = Styled.div`
 
 function UserRegister() {
     const formRef = useRef(null);
-    const navigate= useNavigate;
+    const navigate= useNavigate();
     const TodayDate = new Date();
     const assignedDate = TodayDate.toISOString().split('T')[0];
     const [showPopup, setShowPopup] = useState(false);
