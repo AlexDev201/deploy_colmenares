@@ -26,7 +26,7 @@ function HistoryCard({ colmenaId, monitorings, harvestings }) {
 
   return (
     <div className="card rounded p-3 mx-2 mx-md-3 mt-3" style={{ border: '1px solid black', boxShadow: '0 15px 30px rgba(0,0,0,0.25)' }}>
-      <h4 className="text-center mb-3">Historial de Colmena {colmenaId}</h4>
+      <h2 className="text-center mb-3">Historial de Colmena {colmenaId}</h2>
       
       <h5>Monitoreos</h5>
       {filteredMonitorings.length === 0 ? (
@@ -230,7 +230,7 @@ function Historial() {
                             />
                           </div>
                           <div className="col-12 col-md-4">
-                            <h3 className="mb-3 text-center">Colmena #{colmena.id}</h3>
+                            <h3 className="mb-3 text-center">Colmena {colmena.id}</h3>
                             <div className="row">
                               <div className="col-12">
                                 <p className="mb-1"><strong>Ubicación:</strong> {colmena.location || 'N/A'}</p>
