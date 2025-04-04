@@ -834,7 +834,7 @@ function UserRegister() {
                     <SuccessIcon />
                     <PopupTitle>Registro Exitoso</PopupTitle>
                     <p>El usuario ha sido registrado exitosamente</p>
-                    <PopupButton onClick={() => setShowPopup(false)}>Aceptar</PopupButton>
+                    <PopupButton onClick={closePopup}>Aceptar</PopupButton>
                 </PopupContent>
             </PopupOverlay>
 
